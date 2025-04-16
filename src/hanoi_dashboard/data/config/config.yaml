@@ -1,0 +1,5 @@
+name: env_monitoring
+user: user
+password: password
+host: localhost
+port: 5432
