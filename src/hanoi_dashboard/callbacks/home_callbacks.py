@@ -2,17 +2,17 @@ from typing import Final
 
 import dash
 import pandas as pd
-import plotly.graph_objects as go
 from dash import Dash, Input, Output, dcc, html
 from loguru import logger
 
 from src.hanoi_dashboard.components import SenseBoxApi
 from src.hanoi_dashboard.data import DbCon, SensorDataDbService
+from src.hanoi_dashboard.plots import Plot2D, PlotData, PlotType2D
 
 DB_CON: Final = DbCon()
 
 
-def register_home_callbacks(app: Dash):
+def register_home_callbacks(app: Dash) -> None:
     @app.callback(
         Output("output-status", "children"),
         Input("fetch-button", "n_clicks"),
@@ -103,29 +103,14 @@ def register_home_callbacks(app: Dash):
             timestamps = sensor_data.get("timestamps", [])
             values = sensor_data.get("values", [])
             unit = sensor_data.get("unit", "")
-            title = f"{sensor_key} ({unit})"
 
             if not timestamps or not values:
                 logger.warning("Skipping graph for {} due to missing data.", sensor_key)
                 continue
 
-            fig = go.Figure()
-            fig.add_trace(
-                go.Scatter(
-                    x=pd.to_datetime(timestamps),  # Convert back to datetime for plotly
-                    y=values,
-                    mode="lines+markers",
-                    name=sensor_key,
-                )
-            )
-
-            fig.update_layout(
-                title=title,
-                xaxis_title="Timestamp",
-                yaxis_title=f"Measurement ({unit})",
-                margin=dict(l=40, r=20, t=40, b=30),  # Adjust margins
-                height=300,  # Set a fixed height for each graph
-            )
+            plot_data: PlotData = PlotData(timestamps, values, sensor_key, unit)
+            plot = Plot2D(plot_data, PlotType2D.SENSOR)
+            fig = plot.fig
 
             graph_components.append(
                 html.Div(
