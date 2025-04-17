@@ -1,0 +1,11 @@
+layout:
+  xaxis: Timestamp
+  margin:
+    l: 20
+    r: 20
+    t: 30
+    b: 30
+  height: 300
+
+trace:
+  mode: lines+markers

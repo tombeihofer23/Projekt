@@ -1,7 +1,17 @@
+# %%
+
 from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
+import yaml
+
+
+class PlotType2D(Enum):
+    SENSOR = 1
+    FORECAST = 2
 
 
 @dataclass
@@ -18,32 +28,52 @@ class PlotData:
 
 
 class Plot2D:
-    def __init__(self, data: PlotData) -> None:
+    def __init__(self, data: PlotData, plot_type: PlotType2D) -> None:
         self.data = data
+        self.plot_type = plot_type
         self.fig = go.Figure()
+        self.config_path: Path
 
-        self.create_2D_sensor_plot()
+        if self.plot_type == PlotType2D.FORECAST:
+            func = self.create_2D_forecast_plot
+            self.config_path = (
+                Path(__file__).parent / "config/2D_forecast_plot_config.yaml"
+            )
+        else:
+            func = self.create_2D_sensor_plot
+            self.config_path = (
+                Path(__file__).parent / "config/2D_sensor_plot_config.yaml"
+            )
 
-    def create_2D_sensor_plot(self) -> go.Figure:
+        func()
+
+    def create_2D_sensor_plot(self) -> None:
         self.update_layout()
         self.update_traces()
-        self.fig.write_image("test.png")
 
-    def update_layout(self) -> go.Figure:
+    def create_2D_forecast_plot(self) -> None:
+        self.update_layout()
+        self.update_traces()
+
+    def update_layout(self) -> None:
+        with self.config_path.open("r") as c:
+            config: dict = yaml.safe_load(c)
         self.fig.update_layout(
             title=self.data.title,
-            xaxis_title="Timestamp",
+            xaxis_title=config["layout"]["xaxis"],
             yaxis_title=f"Value ({self.data.unit})",
-            margin=dict(l=40, r=20, t=40, b=30),
-            height=300,
+            margin=config["layout"]["margin"],
+            height=config["layout"]["height"],
         )
 
-    def update_traces(self) -> go.Figure:
+    def update_traces(self) -> None:
+        with self.config_path.open("r") as c:
+            config: dict = yaml.safe_load(c)
         self.fig.add_trace(
             go.Scatter(
                 x=self.data.x,
                 y=self.data.y,
-                mode="lines+markers",
+                mode=config["trace"]["mode"],
                 name=self.data.sensor_name,
             )
         )
@@ -61,4 +91,7 @@ if __name__ == "__main__":
         "mm",
     )
 
-    fig = Plot2D(plot_data)
+    fig = Plot2D(plot_data, PlotType2D.SENSOR).fig
+    fig.show()
+
+# %%
