@@ -34,7 +34,15 @@ layout = dmc.Box(
                 # Container where graphs will be dynamically added
                 dmc.Box(
                     id="graph-container",
-                    children=[html.P("Graphs will appear here after fetching data.")],
+                    children=[
+                        dmc.Grid(
+                            id="graph-grid",
+                            gutter="md",
+                            children=[
+                                html.P("Graphs will appear here after fetching data.")
+                            ],
+                        )
+                    ],
                 ),
                 dmc.Divider(variant="solid"),
                 html.Footer("Dashboard End"),

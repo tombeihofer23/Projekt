@@ -1,6 +1,7 @@
 from typing import Final
 
 import dash
+import dash_mantine_components as dmc
 import pandas as pd
 from dash import Dash, Input, Output, dcc, html
 from loguru import logger
@@ -50,7 +51,7 @@ def register_home_callbacks(app: Dash) -> None:
         logger.info("Graph store update triggered by: {}", trigger_id)
 
         db_service = SensorDataDbService(DB_CON)
-        data: pd.DataFrame = db_service.query_data(48, "6252afcfd7e732001bb6b9f7")
+        data: pd.DataFrame = db_service.query_data(72, "6252afcfd7e732001bb6b9f7")
 
         if data is None or data.empty:
             logger.warning("No data retrieved from DB for graphs")
@@ -83,9 +84,7 @@ def register_home_callbacks(app: Dash) -> None:
         logger.info("Prepared data for {} graphs.", len(graph_data))
         return graph_data
 
-    @app.callback(
-        Output("graph-container", "children"), Input("graph-data-store", "data")
-    )
+    @app.callback(Output("graph-grid", "children"), Input("graph-data-store", "data"))
     def update_graphs(stored_data):
         if not stored_data:
             return html.P(
@@ -93,7 +92,7 @@ def register_home_callbacks(app: Dash) -> None:
             )
 
         logger.info("Updating graphs from stored data ({} series).", len(stored_data))
-        graph_components = []
+        grid_columns: list = []
         sorted_keys = sorted(
             stored_data.keys()
         )  # Sort alphabetically for consistent order
@@ -110,19 +109,15 @@ def register_home_callbacks(app: Dash) -> None:
 
             plot_data: PlotData = PlotData(timestamps, values, sensor_key, unit)
             plot = Plot2D(plot_data, PlotType2D.SENSOR)
-            fig = plot.fig
-
-            graph_components.append(
-                html.Div(
-                    className="graph-item",
-                    children=[  # Optional wrapper div
-                        dcc.Graph(
-                            figure=fig,
-                            id={"type": "dynamic-graph", "index": sensor_key},
-                        )  # Using pattern-matching ID is optional here
-                    ],
-                )
+            graph = dcc.Graph(
+                figure=plot.fig,
+                id={"type": "dynamic-graph", "index": sensor_key},
             )
 
-        logger.info("Generated {} graph components.", len(graph_components))
-        return graph_components
+            grid_column = dmc.GridCol(
+                span={"base": 4, "xs": 12, "sm": 6, "md": 4}, children=graph
+            )
+            grid_columns.append(grid_column)
+
+        logger.info("Generated {} graph components.", len(grid_columns))
+        return grid_columns
