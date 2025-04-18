@@ -16,9 +16,6 @@ layout = dmc.Box(
                         order=1,
                     ),
                 ),
-                dmc.Button(
-                    "Fetch Latest Data & Update Graphs", id="fetch-button", n_clicks=0
-                ),
                 dmc.Text(
                     id="output-status",
                     children="Dashboard loaded. Click button to fetch initial data.",

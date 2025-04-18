@@ -16,13 +16,13 @@ DB_CON: Final = DbCon()
 def register_home_callbacks(app: Dash) -> None:
     @app.callback(
         Output("output-status", "children"),
-        Input("fetch-button", "n_clicks"),
+        Input("interval-component", "n_intervals"),
         prevent_initial_call=True,
     )
-    def update_db_and_status(n_clicks: int) -> str:
-        if n_clicks > 0:
+    def update_db_and_status(n_intervals: int) -> str:
+        if n_intervals > 0:
             logger.info(
-                "Fetch button clicked ({} times). Fetching data from API...", n_clicks
+                "Fetching new data automatically ({} times) from API...", n_intervals
             )
             sense_box_api = SenseBoxApi("6252afcfd7e732001bb6b9f7")
             data: pd.DataFrame = sense_box_api.fetch_new_sensor_data()
@@ -38,10 +38,10 @@ def register_home_callbacks(app: Dash) -> None:
 
     @app.callback(
         Output("graph-data-store", "data"),
-        Input("fetch-button", "n_clicks"),
+        Input("interval-component", "n_intervals"),
         prevent_initial_call=False,
     )
-    def update_graph_store(n_clicks: int) -> dict:
+    def update_graph_store(n_intervals: int) -> dict:
         ctx = dash.callback_context
         trigger_id = (
             ctx.triggered[0]["prop_id"].split(".")[0]
