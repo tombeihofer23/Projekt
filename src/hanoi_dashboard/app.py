@@ -9,11 +9,14 @@ app.title = "Hanoi Sensor Data Dashboard"
 app.layout = dmc.MantineProvider(
     children=[
         dash.page_container,
+        # automatische Abfrage neuer Daten alle 10 Minuten
         dcc.Interval(
             id="interval-component",
             interval=10 * 60 * 1000,  # 10min in Millisekunden
             n_intervals=0,
         ),
+        # Speicher für die Graph-Daten (JSON format)
+        dcc.Store(id="graph-data-store"),
     ]
 )
 
