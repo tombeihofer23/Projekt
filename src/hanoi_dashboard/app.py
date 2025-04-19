@@ -4,7 +4,7 @@ from dash import Dash, dcc
 
 from src.hanoi_dashboard.callbacks import (
     register_app_callbacks,
-    register_home_callbacks,
+    register_sensors_callbacks,
 )
 from src.hanoi_dashboard.elements import create_header, create_navbar
 
@@ -42,4 +42,4 @@ app.layout = dmc.MantineProvider(
 
 # Register callbacks
 register_app_callbacks(app)
-register_home_callbacks(app)
+register_sensors_callbacks(app)

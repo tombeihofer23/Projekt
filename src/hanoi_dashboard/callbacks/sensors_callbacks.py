@@ -13,7 +13,7 @@ from src.hanoi_dashboard.plots import Plot2D, PlotData, PlotType2D
 DB_CON: Final = DbCon()
 
 
-def register_home_callbacks(app: Dash) -> None:
+def register_sensors_callbacks(app: Dash) -> None:
     @app.callback(
         Output("output-status", "children"),
         Input("interval-component", "n_intervals"),
