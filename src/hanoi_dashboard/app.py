@@ -2,11 +2,29 @@ import dash
 import dash_mantine_components as dmc
 from dash import Dash, dcc
 
-from src.hanoi_dashboard.callbacks import register_home_callbacks
-from src.hanoi_dashboard.elements import create_navbar
+from src.hanoi_dashboard.callbacks import (
+    register_app_callbacks,
+    register_home_callbacks,
+)
+from src.hanoi_dashboard.elements import create_header, create_navbar
 
 app = Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL)
 app.title = "Hanoi Sensor Data Dashboard"
+
+layout = dmc.AppShell(
+    [
+        create_header(),
+        create_navbar(),
+        dmc.AppShellMain(dash.page_container),
+    ],
+    header={"height": 60},
+    navbar={
+        "width": 300,
+        "breakpoint": "sm",
+        "collapsed": {"desktop": True},
+    },
+    id="appshell",
+)
 
 app.layout = dmc.MantineProvider(
     children=[
@@ -18,9 +36,10 @@ app.layout = dmc.MantineProvider(
         ),
         # Speicher für die Graph-Daten (JSON format)
         dcc.Store(id="graph-data-store"),
-        dmc.Box(id="page-content", children=[create_navbar(), dash.page_container]),
+        layout,
     ]
 )
 
 # Register callbacks
+register_app_callbacks(app)
 register_home_callbacks(app)

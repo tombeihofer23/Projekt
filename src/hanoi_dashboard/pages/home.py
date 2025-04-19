@@ -9,13 +9,13 @@ layout = dmc.Box(
             mt=15,
             mx=15,
             children=[
-                dmc.Center(
-                    dmc.Title(
-                        children=f"OpenSenseMap Sensor Data (Box: {'6252afcfd7e732001bb6b9f7'})",
-                        order=1,
-                    ),
-                    pb=25,
-                ),
+                # dmc.Center(
+                #     dmc.Title(
+                #         children=f"OpenSenseMap Sensor Data (Box: {'6252afcfd7e732001bb6b9f7'})",
+                #         order=1,
+                #     ),
+                #     pb=25,
+                # ),
                 dmc.Text(
                     id="output-status",
                     children="Dashboard loaded. Click button to fetch initial data.",
