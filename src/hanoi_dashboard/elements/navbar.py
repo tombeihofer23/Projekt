@@ -7,6 +7,7 @@ def create_navbar():
         children=[
             dmc.NavLink(label="Home", href="/"),
             dmc.NavLink(label="Sensors", href="/sensors"),
+            dmc.NavLink(label="Forecast", href="/forecasts"),
         ],
         p="md",
     )
