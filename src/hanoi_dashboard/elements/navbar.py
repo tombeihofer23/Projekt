@@ -5,9 +5,8 @@ def create_navbar():
     return dmc.AppShellNavbar(
         id="navbar",
         children=[
-            "Navbar",
-            dmc.NavLink(label="home", href="/"),
-            dmc.NavLink(label="test", href="/test"),
+            dmc.NavLink(label="Home", href="/"),
+            dmc.NavLink(label="Sensors", href="/sensors"),
         ],
         p="md",
     )
