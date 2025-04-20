@@ -16,14 +16,14 @@ class PlotType2D(Enum):
 
 @dataclass
 class PlotData:
-    x: list[str]
-    y: list[float]
+    x: pd.Series
+    y: pd.Series
     sensor_name: str
     unit: str
     title: str = ""
 
     def __post_init__(self):
-        self.x: pd.DatetimeIndex = pd.to_datetime(self.x)
+        # self.x: pd.DatetimeIndex = pd.to_datetime(self.x)
         self.title = f"{self.sensor_name} ({self.unit})"
 
 

@@ -1,6 +1,3 @@
-import datetime as dt
-from datetime import datetime, timedelta
-
 import pandas as pd
 from loguru import logger
 from sqlalchemy import select
@@ -56,16 +53,31 @@ class SensorDataQueryService:
     def __init__(self, db_con: DbCon) -> None:
         self.db_con = db_con
 
-    def query_data(self, time_window_hours: int, box_id: str) -> pd.DataFrame:
+    def query_all_data(self, box_id: str) -> pd.DataFrame:
+        logger.info("Querying all data for box_id {}.", box_id)
+        try:
+            query = select(SensorData).where(SensorData.box_id == box_id)
+            with self.db_con.get_session()() as session:
+                df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
+            logger.info("Retrieved {} data points from db.", len(df))
+            return df
+        except Exception as e:
+            logger.error("Error querying data: {}", e)
+            return None
+
+    def query_data_date_range(
+        self, box_id: str, start_date: str, end_date: str
+    ) -> pd.DataFrame:
         logger.info(
-            "Querying data for box_id {}, last {} hours.", box_id, time_window_hours
+            "Querying data for box_id {} from {} to {}.", box_id, start_date, end_date
         )
         try:
-            cutoff_time = datetime.now(dt.timezone.utc) - timedelta(
-                hours=time_window_hours
-            )
+            # cutoff_time = datetime.now(dt.timezone.utc) - timedelta(
+            #     hours=time_window_hours
+            # )
             query = select(SensorData).where(
-                (SensorData.box_id == box_id) & (SensorData.timestamp >= cutoff_time)
+                (SensorData.box_id == box_id)
+                & (SensorData.timestamp.between(start_date, end_date))
             )
             with self.db_con.get_session()() as session:
                 df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
@@ -86,5 +98,18 @@ class SensorDataDbService:
     def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> None:
         self.sensor_data_write_service.write_new_sensor_data(data, box_id)
 
-    def query_data(self, time_window_hours: int, box_id: str) -> pd.DataFrame:
-        return self.sensor_data_query_servive.query_data(time_window_hours, box_id)
+    def query_all_data(self, box_id: str) -> pd.DataFrame:
+        return self.sensor_data_query_servive.query_all_data(box_id)
+
+    def query_data_date_range(
+        self, box_id: str, start_date: str, end_date: str
+    ) -> pd.DataFrame:
+        return self.sensor_data_query_servive.query_data_date_range(
+            box_id, start_date, end_date
+        )
+
+
+if __name__ == "__main__":
+    db_service = SensorDataDbService(DbCon())
+    data = db_service.query_all_data("6252afcfd7e732001bb6b9f7")
+    print(data)
