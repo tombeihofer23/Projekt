@@ -55,6 +55,7 @@ class SenseBoxDataLoader:
                 "unit": "unit",
                 "sensorType": "sensor_type",
                 "icon": "icon",
+                "title": "title",
             }
             cols_to_select = {
                 k: v for k, v in required_cols.items() if k in df_filtered.columns
@@ -171,9 +172,11 @@ class SenseBoxApi:
 
 if __name__ == "__main__":
     sense_box_api = SenseBoxApi("6252afcfd7e732001bb6b9f7")
-    sensor_df = sense_box_api.fetch_historical_sensor_data(
-        "6252afcfd7e732001bb6b9f8",
-        from_date="2025-03-12T00:00:00Z",
-        to_date="2025-04-01T00:00:00Z",
-    )
-    print(sensor_df[:10])
+    # sensor_df = sense_box_api.fetch_historical_sensor_data(
+    #     "6252afcfd7e732001bb6b9f8",
+    #     from_date="2025-03-12T00:00:00Z",
+    #     to_date="2025-04-01T00:00:00Z",
+    # )
+    # print(sensor_df[:10])
+    sdf = sense_box_api.fetch_new_sensor_data()
+    print(sdf[:10])

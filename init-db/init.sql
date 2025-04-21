@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS sensor_data (
     unit        TEXT,
     sensor_type TEXT,
     icon        TEXT,
+    title       TEXT,
     -- Define composite primary key or unique constraint for ON CONFLICT
     UNIQUE (timestamp, box_id, sensor_id)
 );

@@ -37,6 +37,13 @@ class SensorDataWriteService:
                     )
                     continue
 
+                sensor_id: str = row["sensor_id"]
+                if pd.isna(sensor_id):
+                    logger.warning(
+                        "Skipping row due to invalid sensor_id: {}", row.to_dict()
+                    )
+                    continue
+
                 sensor_data_point: SensorData = SensorData.from_dict(row.to_dict())
                 try:
                     self.write(sensor_data=sensor_data_point, session=session)
@@ -111,5 +118,5 @@ class SensorDataDbService:
 
 if __name__ == "__main__":
     db_service = SensorDataDbService(DbCon())
-    data = db_service.query_all_data("6252afcfd7e732001bb6b9f7")
-    print(data)
+    qdata = db_service.query_all_data("6252afcfd7e732001bb6b9f7")
+    print(qdata)

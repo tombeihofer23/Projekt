@@ -35,6 +35,9 @@ class SensorData(Base):
     icon: Mapped[str]
     """Icon der Messung."""
 
+    title: Mapped[str]
+    """Titel der Messung."""
+
     __table_args__: Any = (
         UniqueConstraint("timestamp", "box_id", "sensor_id", name="unique"),
     )
@@ -51,6 +54,7 @@ class SensorData(Base):
                 "unit",
                 "sensor_tpye",
                 "icon",
+                "title",
             ],
             Any,
         ],
@@ -65,6 +69,7 @@ class SensorData(Base):
             unit=sensor_data_dict["unit"],
             sensor_type=sensor_data_dict["sensor_type"],
             icon=sensor_data_dict["icon"],
+            title=sensor_data_dict["title"],
         )
 
     def __repr__(self) -> str:
@@ -73,5 +78,6 @@ class SensorData(Base):
         return (
             f"Sensordatenpunkt(ts={self.timestamp}, box_id={self.box_id}, "
             f"sensor_id={self.sensor_id}, measurement={self.measurement}, "
-            f"unit={self.unit}, sensor_type={self.sensor_type}, icon={self.icon})"
+            f"unit={self.unit}, sensor_type={self.sensor_type}, icon={self.icon}, "
+            f"title={self.title})"
         )
