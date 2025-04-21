@@ -1,9 +1,14 @@
+from typing import Final
+
 import pandas as pd
 from loguru import logger
-from sqlalchemy import select
+from pydantic import ValidationError
+from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.hanoi_dashboard.data import DbCon, SensorData
+from src.hanoi_dashboard.utils import SensorDataModel, SensorDataPointExistsError
 
 
 class SensorDataWriteService:
@@ -11,10 +16,24 @@ class SensorDataWriteService:
         self.db_con = db_con
 
     @staticmethod
-    def write(sensor_data: SensorData, session: Session) -> None:
-        logger.debug("{}", sensor_data)
-        session.add(instance=sensor_data)
-        session.flush(objects=[sensor_data])
+    def exists_sensor_data_point(
+        sensor_data_point: SensorData, session: Session
+    ) -> bool:
+        statement: Final = select(func.count()).where(  # pylint: disable=not-callable
+            (SensorData.measurement == sensor_data_point.measurement)
+            & (SensorData.box_id == sensor_data_point.box_id)
+            & (SensorData.sensor_id == sensor_data_point.sensor_id)
+        )
+        num_of_rows: Final = session.scalar(statement)
+        return num_of_rows is not None and num_of_rows > 0
+
+    def write(self, sensor_data: SensorData, session: Session) -> None:
+        if self.exists_sensor_data_point(sensor_data, session):
+            logger.error(SensorDataPointExistsError(sensor_data))
+        else:
+            logger.debug("Neuer {}", sensor_data)
+            session.add(instance=sensor_data)
+            session.flush(objects=[sensor_data])
 
     def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> None:
         if data is None or data.empty:
@@ -23,36 +42,38 @@ class SensorDataWriteService:
         insert_count: int = 0
         with self.db_con.get_session()() as session:
             for _, row in data.iterrows():
-                measurement: float = row["measurement"]
-                if pd.isna(measurement):
-                    logger.warning(
-                        "Skipping row due to NaN measurement: {}", row.to_dict()
-                    )
-                    continue
-
-                timestamp: pd.Timestamp = row["timestamp"]
-                if pd.isna(timestamp):
-                    logger.warning(
-                        "Skipping row due to invalid timestamp: {}", row.to_dict()
-                    )
-                    continue
-
-                sensor_id: str = row["sensor_id"]
-                if pd.isna(sensor_id):
-                    logger.warning(
-                        "Skipping row due to invalid sensor_id: {}", row.to_dict()
-                    )
-                    continue
-
-                sensor_data_point: SensorData = SensorData.from_dict(row.to_dict())
                 try:
+                    SensorDataModel.model_validate_json(row.to_json())
+                except ValidationError as e:
+                    logger.warning(
+                        "Skipping row due to invalid data: {}\n{}", row.to_dict(), e
+                    )
+                else:
+                    # measurement: float = row["measurement"]
+                    # if pd.isna(measurement):
+                    #     logger.warning(
+                    #         "Skipping row due to NaN measurement: {}", row.to_dict()
+                    #     )
+                    #     continue
+
+                    # timestamp: pd.Timestamp = row["timestamp"]
+                    # if pd.isna(timestamp):
+                    #     logger.warning(
+                    #         "Skipping row due to invalid timestamp: {}", row.to_dict()
+                    #     )
+                    #     continue
+
+                    # sensor_id: str = row["sensor_id"]
+                    # if pd.isna(sensor_id):
+                    #     logger.warning(
+                    #         "Skipping row due to invalid sensor_id: {}", row.to_dict()
+                    #     )
+                    #     continue
+
+                    sensor_data_point: SensorData = SensorData.from_dict(row.to_dict())
                     self.write(sensor_data=sensor_data_point, session=session)
                     session.commit()
                     insert_count += 1
-                except Exception as e:
-                    logger.error(
-                        "Error inserting row: {} - Error: {}", row.to_dict(), e
-                    )
         logger.info("Attempted to process {} rows for box_id {}", insert_count, box_id)
 
 
@@ -68,31 +89,32 @@ class SensorDataQueryService:
                 df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
             logger.info("Retrieved {} data points from db.", len(df))
             return df
-        except Exception as e:
-            logger.error("Error querying data: {}", e)
-            return None
+        except SQLAlchemyError as e:
+            logger.error("SQLAlchemy error while querying data: {}", e)
+        except ValueError as e:
+            logger.error("ValueError while parsing result: {}", e)
+        except Exception as e:  # pylint: disable=broad-except
+            logger.exception("Unexpected error while querying data: {}", e)
+        return None
 
-    def query_data_date_range(
-        self, box_id: str, start_date: str, end_date: str
-    ) -> pd.DataFrame:
-        logger.info(
-            "Querying data for box_id {} from {} to {}.", box_id, start_date, end_date
-        )
-        try:
-            # cutoff_time = datetime.now(dt.timezone.utc) - timedelta(
-            #     hours=time_window_hours
-            # )
-            query = select(SensorData).where(
-                (SensorData.box_id == box_id)
-                & (SensorData.timestamp.between(start_date, end_date))
-            )
-            with self.db_con.get_session()() as session:
-                df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
-            logger.info("Retrieved {} data points from db.", len(df))
-            return df
-        except Exception as e:
-            logger.error("Error querying data: {}", e)
-            return None
+    # def query_data_date_range(
+    #     self, box_id: str, start_date: str, end_date: str
+    # ) -> pd.DataFrame:
+    #     logger.info(
+    #         "Querying data for box_id {} from {} to {}.", box_id, start_date, end_date
+    #     )
+    #     try:
+    #         query = select(SensorData).where(
+    #             (SensorData.box_id == box_id)
+    #             & (SensorData.timestamp.between(start_date, end_date))
+    #         )
+    #         with self.db_con.get_session()() as session:
+    #             df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
+    #         logger.info("Retrieved {} data points from db.", len(df))
+    #         return df
+    #     except Exception as e:
+    #         logger.error("Error querying data: {}", e)
+    #         return None
 
 
 class SensorDataDbService:
@@ -108,12 +130,12 @@ class SensorDataDbService:
     def query_all_data(self, box_id: str) -> pd.DataFrame:
         return self.sensor_data_query_servive.query_all_data(box_id)
 
-    def query_data_date_range(
-        self, box_id: str, start_date: str, end_date: str
-    ) -> pd.DataFrame:
-        return self.sensor_data_query_servive.query_data_date_range(
-            box_id, start_date, end_date
-        )
+    # def query_data_date_range(
+    #     self, box_id: str, start_date: str, end_date: str
+    # ) -> pd.DataFrame:
+    #     return self.sensor_data_query_servive.query_data_date_range(
+    #         box_id, start_date, end_date
+    #     )
 
 
 if __name__ == "__main__":
