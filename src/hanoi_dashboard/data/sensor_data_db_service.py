@@ -49,27 +49,6 @@ class SensorDataWriteService:
                         "Skipping row due to invalid data: {}\n{}", row.to_dict(), e
                     )
                 else:
-                    # measurement: float = row["measurement"]
-                    # if pd.isna(measurement):
-                    #     logger.warning(
-                    #         "Skipping row due to NaN measurement: {}", row.to_dict()
-                    #     )
-                    #     continue
-
-                    # timestamp: pd.Timestamp = row["timestamp"]
-                    # if pd.isna(timestamp):
-                    #     logger.warning(
-                    #         "Skipping row due to invalid timestamp: {}", row.to_dict()
-                    #     )
-                    #     continue
-
-                    # sensor_id: str = row["sensor_id"]
-                    # if pd.isna(sensor_id):
-                    #     logger.warning(
-                    #         "Skipping row due to invalid sensor_id: {}", row.to_dict()
-                    #     )
-                    #     continue
-
                     sensor_data_point: SensorData = SensorData.from_dict(row.to_dict())
                     self.write(sensor_data=sensor_data_point, session=session)
                     session.commit()
