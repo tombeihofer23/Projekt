@@ -26,12 +26,12 @@ def register_sensors_callbacks(app: Dash) -> None:
             logger.info(
                 "Fetching new data automatically ({} times) from API...", n_intervals
             )
-            sense_box_api = SenseBoxApi("6252afcfd7e732001bb6b9f7")
+            sense_box_api = SenseBoxApi("5d6d5269953683001ae46adc")
             data: pd.DataFrame = sense_box_api.fetch_new_sensor_data()
 
             if data is not None and not data.empty:
                 db_service = SensorDataDbService(DB_CON)
-                db_service.write_new_sensor_data(data, "6252afcfd7e732001bb6b9f7")
+                db_service.write_new_sensor_data(data, "5d6d5269953683001ae46adc")
                 return f"API Fetch successful. Processed {len(data)} readings."
             else:
                 return "Failed to fetch data"
@@ -53,7 +53,7 @@ def register_sensors_callbacks(app: Dash) -> None:
         logger.info("Graph store update triggered by: {}", trigger_id)
 
         db_service = SensorDataDbService(DB_CON)
-        data: pd.DataFrame = db_service.query_all_data("6252afcfd7e732001bb6b9f7")
+        data: pd.DataFrame = db_service.query_all_data("5d6d5269953683001ae46adc")
 
         if data is None or data.empty:
             logger.warning("No data retrieved from DB for graphs")
