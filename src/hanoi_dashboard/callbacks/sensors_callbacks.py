@@ -43,7 +43,7 @@ def register_sensors_callbacks(app: Dash) -> None:
         Input("interval-component", "n_intervals"),
         prevent_initial_call=False,
     )
-    def update_graph_store(n_intervals: int) -> dict:
+    def update_graph_store(n_intervals: int) -> dict:  # pylint: disable=unused-argument
         ctx = dash.callback_context
         trigger_id = (
             ctx.triggered[0]["prop_id"].split(".")[0]
@@ -114,7 +114,7 @@ def register_sensors_callbacks(app: Dash) -> None:
                     )
                 ]
             else:
-                dash.no_update
+                dash.no_update  # pylint: disable=pointless-statement
 
         grid_columns: list = []
         grouped_data = data.groupby("sensor_key")
