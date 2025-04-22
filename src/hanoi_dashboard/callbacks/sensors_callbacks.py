@@ -72,7 +72,9 @@ def register_sensors_callbacks(app: Dash) -> None:
             return [], "2025-01-01", datetime.now().date()
 
         data: pd.DataFrame = pd.read_json(StringIO(stored_data), orient="split")
-        data["timestamp"] = pd.to_datetime(data["timestamp"])
+        data["timestamp"] = pd.to_datetime(data["timestamp"], utc=True).map(
+            lambda x: x.tz_convert("Europe/Berlin")
+        )
 
         sensors: list = list(set(data["sensor_id"]))
         min_date, max_date = data["timestamp"].agg(["min", "max"])
@@ -91,7 +93,9 @@ def register_sensors_callbacks(app: Dash) -> None:
             )
 
         data: pd.DataFrame = pd.read_json(StringIO(stored_data), orient="split")
-        data["timestamp"] = pd.to_datetime(data["timestamp"])
+        data["timestamp"] = pd.to_datetime(data["timestamp"], utc=True).map(
+            lambda x: x.tz_convert("Europe/Berlin")
+        )
 
         data["sensor_key"] = data.apply(
             lambda row: f"{row['box_id']}_{row['sensor_id']}"
