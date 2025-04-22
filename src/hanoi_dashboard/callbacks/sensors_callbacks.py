@@ -17,7 +17,9 @@ DB_CON: Final = DbCon()
 
 def register_sensors_callbacks(app: Dash) -> None:
     @app.callback(
-        Output("output-status", "children"),
+        Output("output-status-notification", "action"),
+        Output("output-status-notification", "title"),
+        Output("output-status-notification", "message"),
         Input("interval-component", "n_intervals"),
         prevent_initial_call=True,
     )
@@ -32,9 +34,13 @@ def register_sensors_callbacks(app: Dash) -> None:
             if data is not None and not data.empty:
                 db_service = SensorDataDbService(DB_CON)
                 db_service.write_new_sensor_data(data, "5d6d5269953683001ae46adc")
-                return f"API Fetch successful. Processed {len(data)} readings."
+                return (
+                    "show",
+                    "Daten geladen!",
+                    f"API Fetch successful. Processed {len(data)} readings.",
+                )
             else:
-                return "Failed to fetch data"
+                return "show", "Fehler!", "Failed to fetch data"
 
         return dash.no_update
 

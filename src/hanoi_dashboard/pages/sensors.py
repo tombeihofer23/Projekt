@@ -48,9 +48,11 @@ layout = dmc.Box(
                         ),
                     ],
                 ),
-                dmc.Text(
-                    id="output-status",
-                    children="Dashboard loaded. Click button to fetch initial data.",
+                dmc.Notification(
+                    id="output-status-notification",
+                    action="hide",
+                    message="",
+                    # children="Dashboard loaded. Click button to fetch initial data.",
                 ),
                 # Container where graphs will be dynamically added
                 dmc.Box(
