@@ -27,15 +27,7 @@ class SensorDataWriteService:
         num_of_rows: Final = session.scalar(statement)
         return num_of_rows is not None and num_of_rows > 0
 
-    def write(self, sensor_data: SensorData, session: Session) -> None:
-        if self.exists_sensor_data_point(sensor_data, session):
-            logger.error(SensorDataPointExistsError(sensor_data))
-        else:
-            logger.debug("Neuer {}", sensor_data)
-            session.add(instance=sensor_data)
-            session.flush(objects=[sensor_data])
-
-    def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> None:
+    def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> int:
         if data is None or data.empty:
             logger.error("No data provided to write")
 
@@ -50,10 +42,16 @@ class SensorDataWriteService:
                     )
                 else:
                     sensor_data_point: SensorData = SensorData.from_dict(row.to_dict())
-                    self.write(sensor_data=sensor_data_point, session=session)
-                    session.commit()
-                    insert_count += 1
-        logger.info("Attempted to process {} rows for box_id {}", insert_count, box_id)
+                    if self.exists_sensor_data_point(sensor_data_point, session):
+                        logger.error(SensorDataPointExistsError(sensor_data_point))
+                    else:
+                        logger.debug("Neuer {}", sensor_data_point)
+                        session.add(instance=sensor_data_point)
+                        session.flush(objects=[sensor_data_point])
+                        session.commit()
+                        insert_count += 1
+        logger.info("Processed {} rows for box_id {}", insert_count, box_id)
+        return insert_count
 
 
 class SensorDataQueryService:
@@ -103,8 +101,8 @@ class SensorDataDbService:
         self.sensor_data_write_service = SensorDataWriteService(self.db_con)
         self.sensor_data_query_servive = SensorDataQueryService(self.db_con)
 
-    def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> None:
-        self.sensor_data_write_service.write_new_sensor_data(data, box_id)
+    def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> int:
+        return self.sensor_data_write_service.write_new_sensor_data(data, box_id)
 
     def query_all_data(self, box_id: str) -> pd.DataFrame:
         return self.sensor_data_query_servive.query_all_data(box_id)

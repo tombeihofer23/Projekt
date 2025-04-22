@@ -5,7 +5,7 @@ from typing import Final
 import dash
 import dash_mantine_components as dmc
 import pandas as pd
-from dash import Dash, Input, Output, dcc, html
+from dash import Dash, Input, Output, ctx, dcc, html
 from loguru import logger
 
 from src.hanoi_dashboard.components import SenseBoxApi
@@ -17,45 +17,53 @@ DB_CON: Final = DbCon()
 
 def register_sensors_callbacks(app: Dash) -> None:
     @app.callback(
-        Output("output-status-notification", "action"),
-        Output("output-status-notification", "title"),
-        Output("output-status-notification", "message"),
+        Output("output-status-notification-container", "children"),
         Input("interval-component", "n_intervals"),
+        Input("fetch-data-button", "n_clicks"),
         prevent_initial_call=True,
     )
-    def update_db_and_status(n_intervals: int) -> str:
-        if n_intervals > 0:
+    def update_db_and_status(n_intervals: int, n_clicks: int) -> str:
+        trigger_id = ctx.triggered_id
+        if trigger_id == "interval-component":
             logger.info(
                 "Fetching new data automatically ({} times) from API...", n_intervals
             )
-            sense_box_api = SenseBoxApi("5d6d5269953683001ae46adc")
-            data: pd.DataFrame = sense_box_api.fetch_new_sensor_data()
+        else:
+            logger.info(
+                "Fetch button clicked ({} times). Fetching data from API...", n_clicks
+            )
+        sense_box_api = SenseBoxApi("5d6d5269953683001ae46adc")
+        data: pd.DataFrame = sense_box_api.fetch_new_sensor_data()
 
-            if data is not None and not data.empty:
-                db_service = SensorDataDbService(DB_CON)
-                db_service.write_new_sensor_data(data, "5d6d5269953683001ae46adc")
-                return (
-                    "show",
-                    "Daten geladen!",
-                    f"API Fetch successful. Processed {len(data)} readings.",
-                )
-            else:
-                return "show", "Fehler!", "Failed to fetch data"
-
-        return dash.no_update
+        if data is not None and not data.empty:
+            db_service = SensorDataDbService(DB_CON)
+            inserted_cols = db_service.write_new_sensor_data(
+                data, "5d6d5269953683001ae46adc"
+            )
+            return dmc.Notification(
+                title="Daten geladen!",
+                autoClose=True,
+                action="show",
+                message=f"API Fetch successful. Processed {inserted_cols} readings.",
+                position="bottom-left",
+            )
+        else:
+            return dmc.Notification(
+                title="Fehler!",
+                autoClose=True,
+                action="show",
+                message="Failed to fetch data.",
+                position="bottom-left",
+            )
 
     @app.callback(
         Output("graph-data-store", "data"),
+        Input("fetch-data-button", "n_clicks"),
         Input("interval-component", "n_intervals"),
-        prevent_initial_call=False,
+        prevent_initial_call=True,
     )
-    def update_graph_store(n_intervals: int) -> dict:  # pylint: disable=unused-argument
-        ctx = dash.callback_context
-        trigger_id = (
-            ctx.triggered[0]["prop_id"].split(".")[0]
-            if ctx.triggered
-            else "initial load"
-        )
+    def update_graph_store(n_clicks: int, n_intervals: int) -> dict:  # pylint: disable=unused-argument
+        trigger_id = ctx.triggered_id
         logger.info("Graph store update triggered by: {}", trigger_id)
 
         db_service = SensorDataDbService(DB_CON)

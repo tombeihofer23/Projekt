@@ -9,33 +9,47 @@ layout = dmc.Box(
         dmc.Box(
             m=15,
             children=[
-                dmc.Grid(
-                    id="sensor-select-grid",
-                    justify="center",
-                    mb=20,
+                dmc.Flex(
+                    justify="space-between",  # Platz zwischen linker und rechter Seite
+                    align="center",
+                    style={"width": "100%"},
+                    mb=30,
                     children=[
-                        dmc.GridCol(
-                            dmc.MultiSelect(
-                                id="sensors-multi-select",
-                                label="Sensoren",
-                                data=[],
-                            ),
-                            span={"base": 4, "xs": 12, "sm": 6, "md": 4},
+                        dmc.Box(),  # Leeres Element links, damit wir zentrieren können
+                        dmc.Group(  # Deine zentrierten Selects
+                            children=[
+                                dmc.MultiSelect(
+                                    id="sensors-multi-select",
+                                    placeholder="Sensoren",
+                                    data=[],
+                                    style={
+                                        "width": 450,
+                                        "minWidth": 250,
+                                        "maxWidth": 450,
+                                    },
+                                ),
+                                dmc.DatePickerInput(
+                                    id="date-input-range-picker",
+                                    placeholder="Zeitspanne",
+                                    type="range",
+                                    style={
+                                        "width": 450,
+                                        "minWidth": 250,
+                                        "maxWidth": 450,
+                                    },
+                                ),
+                            ],
                         ),
-                        dmc.GridCol(
-                            dmc.DatePickerInput(
-                                id="date-input-range-picker",
-                                label="Zeitspanne",
-                                type="range",
-                            ),
-                            span={"base": 4, "xs": 12, "sm": 6, "md": 4},
-                        ),
+                        dmc.Button(
+                            "Fetch Data",
+                            id="fetch-data-button",
+                            variant="filled",
+                            color="red",
+                        ),  # Rechts außen
                     ],
                 ),
-                dmc.Notification(
-                    id="output-status-notification",
-                    action="hide",
-                    message="",
+                dmc.Box(
+                    id="output-status-notification-container",
                     # children="Dashboard loaded. Click button to fetch initial data.",
                 ),
                 # Container where graphs will be dynamically added

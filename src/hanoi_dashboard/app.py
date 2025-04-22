@@ -40,6 +40,7 @@ app.layout = dmc.MantineProvider(
         ),
         # Speicher für die Graph-Daten (JSON format)
         dcc.Store(id="graph-data-store"),
+        dmc.NotificationProvider(),
         layout,
     ],
 )
