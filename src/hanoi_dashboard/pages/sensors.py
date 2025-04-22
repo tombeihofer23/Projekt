@@ -1,5 +1,3 @@
-from datetime import date
-
 import dash
 import dash_mantine_components as dmc
 from dash import dcc
@@ -14,26 +12,13 @@ layout = dmc.Box(
                 dmc.Grid(
                     id="sensor-select-grid",
                     justify="center",
+                    mb=20,
                     children=[
                         dmc.GridCol(
                             dmc.MultiSelect(
                                 id="sensors-multi-select",
                                 label="Sensoren",
-                                data=[
-                                    {
-                                        "value": "3453489234",
-                                        "label": "Temperatur-Sensor",
-                                    },
-                                    {
-                                        "value": "e454542343",
-                                        "label": "Luftdruck-Sensor",
-                                    },
-                                    {
-                                        "value": "3445652342",
-                                        "label": "Luftfeuchtigkeits-Sensor",
-                                    },
-                                    {"value": "2342342356", "label": "Wind-Sensor"},
-                                ],
+                                data=[],
                             ),
                             span={"base": 4, "xs": 12, "sm": 6, "md": 4},
                         ),
@@ -42,7 +27,6 @@ layout = dmc.Box(
                                 id="date-input-range-picker",
                                 label="Zeitspanne",
                                 type="range",
-                                minDate=date(2020, 1, 1),
                             ),
                             span={"base": 4, "xs": 12, "sm": 6, "md": 4},
                         ),
