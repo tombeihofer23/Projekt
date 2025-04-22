@@ -1,4 +1,5 @@
-from dash import Dash, Input, Output, State, clientside_callback
+import plotly.io as pio
+from dash import ALL, Dash, Input, Output, Patch, State, clientside_callback
 
 
 def register_app_callbacks(app: Dash) -> None:
@@ -21,3 +22,22 @@ def register_app_callbacks(app: Dash) -> None:
         Output("color-scheme-toggle", "id"),
         Input("color-scheme-toggle", "checked"),
     )
+
+    @app.callback(
+        Output({"type": "dynamic-graph", "index": ALL}, "figure"),
+        Input("color-scheme-toggle", "checked"),
+        State({"type": "dynamic-graph", "index": ALL}, "id"),
+    )
+    def update_figures_template(switch_on: bool, ids):
+        template = (
+            pio.templates["mantine_light"]
+            if not switch_on
+            else pio.templates["mantine_dark"]
+        )
+        patched_figures = []
+        for _ in ids:
+            patched_fig = Patch()
+            patched_fig["layout"]["template"] = template
+            patched_figures.append(patched_fig)
+
+        return patched_figures

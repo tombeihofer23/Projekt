@@ -2,6 +2,7 @@ from datetime import date
 
 import dash
 import dash_mantine_components as dmc
+from dash import dcc
 
 dash.register_page(__name__, path="/sensors")
 
@@ -55,12 +56,17 @@ layout = dmc.Box(
                 dmc.Box(
                     id="graph-container",
                     children=[
-                        dmc.Grid(
-                            id="graph-grid",
-                            gutter="md",
-                            children=[
-                                dmc.Text("Graphs will appear here after fetching data.")
-                            ],
+                        dcc.Loading(
+                            dmc.Grid(
+                                id="graph-grid",
+                                gutter="md",
+                                children=[
+                                    dmc.Text(
+                                        "Graphs will appear here after fetching data."
+                                    )
+                                ],
+                            ),
+                            delay_hide=1000,
                         ),
                     ],
                 ),

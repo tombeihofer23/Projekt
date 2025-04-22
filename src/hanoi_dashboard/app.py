@@ -8,6 +8,8 @@ from src.hanoi_dashboard.callbacks import (
 )
 from src.hanoi_dashboard.elements import create_header, create_navbar
 
+dmc.add_figure_templates(default="mantine_light")
+
 app = Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL)
 app.title = "Hanoi Sensor Data Dashboard"
 
@@ -27,6 +29,8 @@ layout = dmc.AppShell(
 )
 
 app.layout = dmc.MantineProvider(
+    id="mantine-provider",
+    forceColorScheme="light",
     children=[
         # automatische Abfrage neuer Daten alle 10 Minuten
         dcc.Interval(
@@ -37,7 +41,7 @@ app.layout = dmc.MantineProvider(
         # Speicher für die Graph-Daten (JSON format)
         dcc.Store(id="graph-data-store"),
         layout,
-    ]
+    ],
 )
 
 # Register callbacks
