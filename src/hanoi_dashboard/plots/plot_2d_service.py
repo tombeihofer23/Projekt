@@ -18,13 +18,13 @@ class PlotType2D(Enum):
 class PlotData:
     x: pd.Series
     y: pd.Series
-    sensor_name: str
+    title: str
     unit: str
-    title: str = ""
+    # header: str = ""
 
-    def __post_init__(self):
-        # self.x: pd.DatetimeIndex = pd.to_datetime(self.x)
-        self.title = f"{self.sensor_name} ({self.unit})"
+    # def __post_init__(self):
+    #     # self.x: pd.DatetimeIndex = pd.to_datetime(self.x)
+    #     self.header = f"{self.title} ({self.unit})"
 
 
 class Plot2D:
@@ -56,12 +56,12 @@ class Plot2D:
         self.update_traces()
 
     def update_layout(self) -> None:
-        with self.config_path.open("r") as c:
+        with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.update_layout(
-            title=self.data.title,
+            title=config["title"][self.data.title].format(self.data.unit),
             xaxis_title=config["layout"]["xaxis"],
-            yaxis_title=f"Value ({self.data.unit})",
+            yaxis_title=f"{self.data.title} ({self.data.unit})",
             margin=config["layout"]["margin"],
             height=config["layout"]["height"],
         )
@@ -74,7 +74,7 @@ class Plot2D:
                 x=self.data.x,
                 y=self.data.y,
                 mode=config["trace"]["mode"],
-                name=self.data.sensor_name,
+                name=self.data.title,
             )
         )
 

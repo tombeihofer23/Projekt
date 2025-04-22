@@ -1,5 +1,5 @@
 layout:
-  xaxis: Timestamp
+  xaxis: Datum
   margin:
     l: 20
     r: 20
@@ -9,3 +9,11 @@ layout:
 
 trace:
   mode: lines+markers
+
+title:
+  Temperatur: Lufttemperatur in {}
+  rel. Luftfeuchte: relative Luftfeuchtigkeit in {}
+  PM2.5: Feinstaub (kleiner als 2,5 µm) in {}
+  PM10: Feinstaub (kleiner als 10 µm) in {}
+  Beleuchtungsstärke: Beleuchtungsstärke des Lichts in {}
+  Luftdruck: Luftdruck in {}

@@ -130,11 +130,12 @@ def register_sensors_callbacks(app: Dash) -> None:
             timestamps = group["timestamp"]
             values = group["measurement"]
             unit = group["unit"].iloc[0] if not group["unit"].empty else ""
+            title = group["title"].iloc[0] if not group["title"].empty else ""
             if timestamps.empty or values.empty:
                 logger.warning("Skipping graph for {} due to missing data.", name)
                 continue
 
-            plot_data: PlotData = PlotData(timestamps, values, name, unit)
+            plot_data: PlotData = PlotData(timestamps, values, title, unit)
             plot = Plot2D(plot_data, PlotType2D.SENSOR)
             graph = dcc.Graph(
                 figure=plot.fig,
