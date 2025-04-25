@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
+from loguru import logger
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm.session import Session, sessionmaker
@@ -47,3 +48,17 @@ class DbCon:
         """Session-Objekt wird geladen."""
 
         return self.session
+
+    def delete_all_data_from_table(self, table) -> None:
+        with self.get_session()() as session:
+            try:
+                num_rows_deleted: int = session.query(table).delete()
+                session.commit()
+                logger.debug(
+                    "Deleted {} rows from  table '{}'",
+                    num_rows_deleted,
+                    table.__tablename__,
+                )
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                session.rollback()
+                logger.error(e)
