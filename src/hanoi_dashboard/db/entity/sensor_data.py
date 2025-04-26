@@ -6,7 +6,7 @@ from typing import Any, Literal, Self
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.schema import UniqueConstraint
 
-from src.hanoi_dashboard.data import Base
+from src.hanoi_dashboard.db import Base
 
 
 class SensorData(Base):

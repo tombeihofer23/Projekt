@@ -7,8 +7,8 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.hanoi_dashboard.data import DbCon, SensorData
-from src.hanoi_dashboard.utils import SensorDataModel, SensorDataPointExistsError
+from src.hanoi_dashboard.db import DbCon, SensorData
+from src.hanoi_dashboard.utils import SensorDataModel
 
 
 class SensorDataWriteService:
@@ -43,7 +43,9 @@ class SensorDataWriteService:
                 else:
                     sensor_data_point: SensorData = SensorData.from_dict(row.to_dict())
                     if self.exists_sensor_data_point(sensor_data_point, session):
-                        logger.error(SensorDataPointExistsError(sensor_data_point))
+                        logger.error(
+                            "Existierender Sensor-Datenpunkt: {}", sensor_data_point
+                        )
                     else:
                         logger.debug("Neuer {}", sensor_data_point)
                         session.add(instance=sensor_data_point)
