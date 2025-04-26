@@ -9,6 +9,7 @@ dependencies = [
     "dash-iconify>=0.1.2",
     "dash-mantine-components>=1.1.1",
     "loguru>=0.7.3",
+    "pandantic>=1.0.1",
     "pandas>=2.2.3",
     "plotly>=6.0.1",
     "psycopg2-binary>=2.9.10",
