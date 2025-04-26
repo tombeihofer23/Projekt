@@ -9,7 +9,7 @@ from dash import Dash, Input, Output, ctx, dcc, html
 from loguru import logger
 
 from src.hanoi_dashboard.components import SenseBoxApi
-from src.hanoi_dashboard.data import DbCon, SensorDataDbService
+from src.hanoi_dashboard.db import DbCon, SensorDataDbService
 from src.hanoi_dashboard.plots import Plot2D, PlotData, PlotType2D
 
 DB_CON: Final = DbCon()
@@ -33,7 +33,7 @@ def register_sensors_callbacks(app: Dash) -> None:
                 "Fetch button clicked ({} times). Fetching data from API...", n_clicks
             )
         sense_box_api = SenseBoxApi("5d6d5269953683001ae46adc")
-        data: pd.DataFrame = sense_box_api.fetch_new_sensor_data()
+        data: pd.DataFrame = sense_box_api.fetch_new_sensor_data_for_one_box()
 
         if data is not None and not data.empty:
             db_service = SensorDataDbService(DB_CON)
@@ -42,7 +42,7 @@ def register_sensors_callbacks(app: Dash) -> None:
             )
             return dmc.Notification(
                 title="Daten geladen!",
-                autoClose=True,
+                autoClose=5000,
                 action="show",
                 message=f"API Fetch successful. Processed {inserted_cols} readings.",
                 position="bottom-left",
@@ -50,7 +50,7 @@ def register_sensors_callbacks(app: Dash) -> None:
         else:
             return dmc.Notification(
                 title="Fehler!",
-                autoClose=True,
+                autoClose=5000,
                 action="show",
                 message="Failed to fetch data.",
                 position="bottom-left",
