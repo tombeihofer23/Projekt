@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from io import StringIO
 from typing import Final
 
@@ -67,7 +67,9 @@ def register_sensors_callbacks(app: Dash) -> None:
         logger.info("Graph store update triggered by: {}", trigger_id)
 
         db_service = SensorDataDbService(DB_CON)
-        data: pd.DataFrame = db_service.query_all_data("5d6d5269953683001ae46adc")
+        data: pd.DataFrame = db_service.query_data_from_a_date_on(
+            "5d6d5269953683001ae46adc", date(2025, 4, 15)
+        )
 
         if data is None or data.empty:
             logger.warning("No data retrieved from DB for graphs")
