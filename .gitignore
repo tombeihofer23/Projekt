@@ -10,4 +10,10 @@ wheels/
 .venv
 
 # VS Code
-.vscode
+src/*/.vscode
+
+# Data
+data
+
+# Notebooks
+notebooks
