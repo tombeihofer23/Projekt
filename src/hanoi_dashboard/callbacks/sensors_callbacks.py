@@ -92,8 +92,14 @@ def register_sensors_callbacks(app: Dash) -> None:
             lambda x: x.tz_convert("Europe/Berlin")
         )
 
-        sensors: list = list(set(data["sensor_id"]))
+        sensors: list[dict] = (
+            data.drop_duplicates(subset=["sensor_id"])
+            .loc[:, ["sensor_id", "title"]]
+            .rename(columns={"sensor_id": "value", "title": "label"})
+            .to_dict(orient="records")
+        )
         min_date, max_date = data["timestamp"].agg(["min", "max"])
+
         return sensors, min_date, max_date
 
     @app.callback(
