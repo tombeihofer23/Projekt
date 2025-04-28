@@ -70,7 +70,7 @@ class Plot2D:
         with self.config_path.open("r") as c:
             config: dict = yaml.safe_load(c)
         self.fig.add_trace(
-            go.Scatter(
+            go.Scattergl(
                 x=self.data.x,
                 y=self.data.y,
                 mode=config["trace"]["mode"],
