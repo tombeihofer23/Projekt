@@ -1,21 +1,19 @@
-from datetime import date, datetime
-from io import StringIO
-from typing import Final
+from datetime import datetime, timedelta
 
 import dash
 import dash_mantine_components as dmc
 import pandas as pd
-from dash import Dash, Input, Output, ctx, dcc, html
+from dash import Dash, Input, Output, ctx, dcc
 from loguru import logger
 
 from src.hanoi_dashboard.components import SenseBoxApi
-from src.hanoi_dashboard.db import DbCon, SensorDataDbService
-from src.hanoi_dashboard.plots import Plot2D, PlotData, PlotType2D
-
-DB_CON: Final = DbCon()
+from src.hanoi_dashboard.db import SensorDataDbService
+from src.hanoi_dashboard.plots import Plot2D, PlotType2D
 
 
-def register_sensors_callbacks(app: Dash) -> None:
+def register_sensors_callbacks(
+    app: Dash, sense_box_api: SenseBoxApi, db_service: SensorDataDbService
+) -> None:
     @app.callback(
         Output("output-status-notification-container", "children"),
         Input("interval-component", "n_intervals"),
@@ -32,11 +30,10 @@ def register_sensors_callbacks(app: Dash) -> None:
             logger.info(
                 "Fetch button clicked ({} times). Fetching data from API...", n_clicks
             )
-        sense_box_api = SenseBoxApi("5d6d5269953683001ae46adc")
+
         data: pd.DataFrame = sense_box_api.fetch_new_sensor_data_for_one_box()
 
         if data is not None and not data.empty:
-            db_service = SensorDataDbService(DB_CON)
             inserted_cols = db_service.write_new_sensor_data(
                 data, "5d6d5269953683001ae46adc"
             )
@@ -57,111 +54,39 @@ def register_sensors_callbacks(app: Dash) -> None:
             )
 
     @app.callback(
-        Output("graph-data-store", "data"),
-        Input("fetch-data-button", "n_clicks"),
-        Input("interval-component", "n_intervals"),
-        prevent_initial_call=True,
-    )
-    def update_graph_store(n_clicks: int, n_intervals: int) -> dict:  # pylint: disable=unused-argument
-        trigger_id = ctx.triggered_id
-        logger.info("Graph store update triggered by: {}", trigger_id)
-
-        db_service = SensorDataDbService(DB_CON)
-        data: pd.DataFrame = db_service.query_data_from_a_date_on(
-            "5d6d5269953683001ae46adc", date(2025, 4, 15)
-        )
-
-        if data is None or data.empty:
-            logger.warning("No data retrieved from DB for graphs")
-            return {}
-
-        return data.to_json(date_format="iso", orient="split")
-
-    @app.callback(
-        Output("sensors-multi-select", "data"),
-        Output("date-input-range-picker", "minDate"),
-        Output("date-input-range-picker", "maxDate"),
-        Input("graph-data-store", "data"),
-    )
-    def fill_select_fields(stored_data: dict):
-        if not stored_data:
-            return [], "2025-01-01", datetime.now().date()
-
-        data: pd.DataFrame = pd.read_json(StringIO(stored_data), orient="split")
-        data["timestamp"] = pd.to_datetime(data["timestamp"], utc=True).map(
-            lambda x: x.tz_convert("Europe/Berlin")
-        )
-
-        sensors: list[dict] = (
-            data.drop_duplicates(subset=["sensor_id"])
-            .loc[:, ["sensor_id", "title"]]
-            .rename(columns={"sensor_id": "value", "title": "label"})
-            .to_dict(orient="records")
-        )
-        min_date, max_date = data["timestamp"].agg(["min", "max"])
-
-        return sensors, min_date, max_date
-
-    @app.callback(
         Output("graph-grid", "children"),
-        Input("graph-data-store", "data"),
         Input("sensors-multi-select", "value"),
         Input("date-input-range-picker", "value"),
     )
-    def update_graphs(stored_data: dict, sensors: list, date_range: str):
-        if not stored_data:
-            return html.P(
-                "No data available to display graphs. Click 'Fetch' or wait for data."
-            )
+    def update_graphs(sensors: list, date_range: list):
+        min_date: datetime = datetime.now().date() - timedelta(days=2)
+        max_date: datetime = datetime.now().date()
 
-        data: pd.DataFrame = pd.read_json(StringIO(stored_data), orient="split")
-        data["timestamp"] = pd.to_datetime(data["timestamp"], utc=True).map(
-            lambda x: x.tz_convert("Europe/Berlin")
-        )
-
-        data["sensor_key"] = data.apply(
-            lambda row: f"{row['box_id']}_{row['sensor_id']}"
-            if pd.notna(row["sensor_id"])
-            else f"{row['box_id']}_{row['sensor_type']}",
-            axis=1,
-        )
-
-        if sensors:
-            data = data[data["sensor_id"].isin(sensors)]
+        if not sensors:
+            sensors = [
+                "5d6d5269953683001ae46ae1",
+                "5d6d5269953683001ae46add",
+                "5d6d5269953683001ae46ade",
+                "607fe08260979a001bd13188",
+                "5d6d5269953683001ae46ae0",
+                "5e7f6fecf7afec001bf5b1a3",
+            ]
 
         if date_range:
             if None not in date_range:
-                data = data[
-                    (data["timestamp"] >= pd.to_datetime(date_range[0], utc=True))
-                    & (
-                        data["timestamp"]
-                        <= pd.to_datetime(date_range[1], utc=True)
-                        + pd.Timedelta(days=1)
-                    )
-                ]
+                min_date: pd.Timestamp = pd.to_datetime(date_range[0])
+                max_date: pd.Timestamp = pd.to_datetime(date_range[1])
             else:
                 dash.no_update  # pylint: disable=pointless-statement
 
         grid_columns: list = []
-        grouped_data = data.groupby("sensor_key")
 
-        for name, group in grouped_data:
-            group = group.sort_values("timestamp")
-            # if len(group) > 500:
-            #     group = group.tail(500)
-            timestamps = group["timestamp"]
-            values = group["measurement"]
-            unit = group["unit"].iloc[0] if not group["unit"].empty else ""
-            title = group["title"].iloc[0] if not group["title"].empty else ""
-            if timestamps.empty or values.empty:
-                logger.warning("Skipping graph for {} due to missing data.", name)
-                continue
-
-            plot_data: PlotData = PlotData(timestamps, values, title, unit)
-            plot = Plot2D(plot_data, PlotType2D.SENSOR)
+        plot_data: dict = db_service.query_plot_data(sensors, [min_date, max_date])
+        for sensor, data in plot_data.items():
+            plot = Plot2D(data, PlotType2D.SENSOR)
             graph = dcc.Graph(
                 figure=plot.fig,
-                id={"type": "dynamic-graph", "index": name},
+                id={"type": "dynamic-graph", "index": sensor},
             )
 
             grid_column = dmc.GridCol(
