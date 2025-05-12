@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 import dash
 import dash_mantine_components as dmc
 from dash import dcc
@@ -21,7 +23,32 @@ layout = dmc.Box(
                                 dmc.MultiSelect(
                                     id="sensors-multi-select",
                                     placeholder="Sensoren",
-                                    data=[],
+                                    data=[
+                                        {
+                                            "value": "5d6d5269953683001ae46ae1",
+                                            "label": "Temperatur",
+                                        },
+                                        {
+                                            "value": "5d6d5269953683001ae46add",
+                                            "label": "PM10",
+                                        },
+                                        {
+                                            "value": "5d6d5269953683001ae46ade",
+                                            "label": "PM2.5",
+                                        },
+                                        {
+                                            "value": "607fe08260979a001bd13188",
+                                            "label": "Luftdruck",
+                                        },
+                                        {
+                                            "value": "5d6d5269953683001ae46ae0",
+                                            "label": "rel. Luftfeuchte",
+                                        },
+                                        {
+                                            "value": "5e7f6fecf7afec001bf5b1a3",
+                                            "label": "Beleuchtungsstärke",
+                                        },
+                                    ],
                                     style={
                                         "width": 450,
                                         "minWidth": 250,
@@ -32,6 +59,8 @@ layout = dmc.Box(
                                     id="date-input-range-picker",
                                     placeholder="Zeitspanne",
                                     type="range",
+                                    minDate=date(2022, 8, 1),
+                                    maxDate=datetime.now().date(),
                                     style={
                                         "width": 450,
                                         "minWidth": 250,
