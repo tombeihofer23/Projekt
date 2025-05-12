@@ -26,7 +26,7 @@ class SensorDataWriteService:
         sensor_data_point: SensorData, session: Session
     ) -> bool:
         statement: Final = select(func.count()).where(  # pylint: disable=not-callable
-            (SensorData.measurement == sensor_data_point.measurement)
+            (SensorData.timestamp == sensor_data_point.timestamp)
             & (SensorData.box_id == sensor_data_point.box_id)
             & (SensorData.sensor_id == sensor_data_point.sensor_id)
         )
@@ -175,6 +175,9 @@ class SensorDataQueryService:
                     query = text(query_str)
                     df: pd.DataFrame = pd.read_sql(
                         query, session.bind, parse_dates=["timestamp"]
+                    )
+                    df["timestamp"] = df["timestamp"].map(
+                        lambda x: x.tz_convert("Europe/Berlin")
                     )
                     sensor_metadata = sensors_metadata[
                         sensors_metadata["sensor_id"] == sensor_id
