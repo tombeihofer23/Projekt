@@ -182,8 +182,8 @@ class SensorDataQueryService:
                     plot_data: PlotData = PlotData(
                         df.timestamp,
                         df.measurement,
-                        sensor_metadata.title,
-                        sensor_metadata.unit,
+                        sensor_metadata.title.iloc[0],
+                        sensor_metadata.unit.iloc[0],
                     )
                     plot_data_dict[sensor_id] = plot_data
                 return plot_data_dict
