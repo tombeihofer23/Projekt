@@ -2,17 +2,18 @@ import os
 from datetime import date
 from pathlib import Path
 from timeit import default_timer as timer
-from typing import Final
+from typing import Dict, Final
 
 import pandas as pd
 from loguru import logger
 from pandantic import Pandantic
 from pydantic import ValidationError
-from sqlalchemy import Date, cast, func, select
+from sqlalchemy import Date, cast, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.hanoi_dashboard.db import DbCon, SensorData
+from src.hanoi_dashboard.db import DbCon, SensorData, SensorMetadata
+from src.hanoi_dashboard.plots import PlotData
 from src.hanoi_dashboard.utils import SensorDataModel
 
 
@@ -115,6 +116,16 @@ class SensorDataQueryService:
             logger.exception("Unexpected error while querying data: {}", e)
         return None
 
+    def query_sensors_metadata(self) -> pd.DataFrame:
+        # logger.info("Query sensor metadata for box_id {}.", box_id)
+        try:
+            query = select(SensorMetadata)
+            with self.db_con.get_session()() as session:
+                df: pd.DataFrame = pd.read_sql(query, session.bind)
+                return df
+        except SQLAlchemyError as e:
+            logger.error("SQLAlchemy error while querying data: {}", e)
+
     def query_data_from_a_date_on(self, box_id: str, from_date: date) -> pd.DataFrame:
         logger.info(
             "Querying data for box_id {} from {} to now.",
@@ -136,6 +147,52 @@ class SensorDataQueryService:
         except Exception as e:  # pylint: disable=broad-except
             logger.exception("Unexpected error while querying data: {}", e)
         return None
+
+    def query_plot_data(
+        self,
+        sensor_ids: list[str],
+        date_range: list[pd.Timestamp],
+    ) -> Dict[str, PlotData]:
+        sensor_sql_dict: dict = {
+            "5d6d5269953683001ae46ae1": "temperature",
+            "5d6d5269953683001ae46add": "pm10",
+            "5d6d5269953683001ae46ade": "pm25",
+            "607fe08260979a001bd13188": "airpressure",
+            "5d6d5269953683001ae46ae0": "humidity",
+            "5e7f6fecf7afec001bf5b1a3": "illuminance",
+        }
+        delta: int = (date_range[1] - date_range[0]).days
+        time_table: str = (
+            "view" if delta <= 3 else "hourly_avg" if delta <= 31 else "daily_avg"
+        )
+        sensors_metadata: pd.DataFrame = self.query_sensors_metadata()
+        plot_data_dict: dict = {}
+        try:
+            with self.db_con.get_session()() as session:
+                for sensor_id in sensor_ids:
+                    table: str = f"{sensor_sql_dict[sensor_id]}_{time_table}"
+                    query_str: str = f"select * from \"{table}\" where \"timestamp\"::date between date '{date_range[0].strftime('%Y-%m-%d')}' and date '{date_range[1].strftime('%Y-%m-%d')}'"
+                    query = text(query_str)
+                    df: pd.DataFrame = pd.read_sql(
+                        query, session.bind, parse_dates=["timestamp"]
+                    )
+                    sensor_metadata = sensors_metadata[
+                        sensors_metadata["sensor_id"] == sensor_id
+                    ]
+                    plot_data: PlotData = PlotData(
+                        df.timestamp,
+                        df.measurement,
+                        sensor_metadata.title,
+                        sensor_metadata.unit,
+                    )
+                    plot_data_dict[sensor_id] = plot_data
+                return plot_data_dict
+        except SQLAlchemyError as e:
+            logger.error("SQLAlchemy error while querying data: {}", e)
+        except ValueError as e:
+            logger.error("ValueError while parsing result: {}", e)
+        except Exception as e:  # pylint: disable=broad-except
+            logger.exception("Unexpected error while querying data: {}", e)
 
     # def query_data_date_range(
     #     self, box_id: str, start_date: str, end_date: str
@@ -179,6 +236,11 @@ class SensorDataDbService:
         return self.sensor_data_query_servive.query_data_from_a_date_on(
             box_id, from_date
         )
+
+    def query_plot_data(
+        self, sensor_ids: list[str], date_range: list[pd.Timestamp]
+    ) -> Dict[str, PlotData]:
+        return self.sensor_data_query_servive.query_plot_data(sensor_ids, date_range)
 
     # def query_data_date_range(
     #     self, box_id: str, start_date: str, end_date: str
