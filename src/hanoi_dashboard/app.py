@@ -1,3 +1,5 @@
+from typing import Final
+
 import dash
 import dash_mantine_components as dmc
 from dash import Dash, dcc
@@ -6,6 +8,8 @@ from src.hanoi_dashboard.callbacks import (
     register_app_callbacks,
     register_sensors_callbacks,
 )
+from src.hanoi_dashboard.components import SenseBoxApi
+from src.hanoi_dashboard.db import DbCon, SensorDataDbService
 from src.hanoi_dashboard.elements import create_header, create_navbar
 
 dmc.add_figure_templates(default="mantine_light")
@@ -38,13 +42,15 @@ app.layout = dmc.MantineProvider(
             interval=10 * 60 * 1000,  # 10min in Millisekunden
             n_intervals=0,
         ),
-        # Speicher für die Graph-Daten (JSON format)
-        dcc.Store(id="graph-data-store"),
         dmc.NotificationProvider(),
         layout,
     ],
 )
 
+SENSE_BOX_API: Final = SenseBoxApi("5d6d5269953683001ae46adc")
+DB_CON: Final = DbCon()
+DB_SERVICE: Final = SensorDataDbService(DB_CON)
+
 # Register callbacks
 register_app_callbacks(app)
-register_sensors_callbacks(app)
+register_sensors_callbacks(app, SENSE_BOX_API, DB_SERVICE)
