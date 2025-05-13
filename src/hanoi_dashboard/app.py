@@ -49,7 +49,7 @@ app.layout = dmc.MantineProvider(
 
 SENSE_BOX_API: Final = SenseBoxApi("5d6d5269953683001ae46adc")
 DB_CON: Final = DbCon()
-DB_SERVICE: Final = SensorDataDbService(DB_CON)
+DB_SERVICE: Final = SensorDataDbService(DB_CON, box_id="5d6d5269953683001ae46adc")
 
 # Register callbacks
 register_app_callbacks(app)
