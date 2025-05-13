@@ -43,6 +43,7 @@ app.layout = dmc.MantineProvider(
             n_intervals=0,
         ),
         dmc.NotificationProvider(),
+        dcc.Store(id="sensor-plot-update-trigger"),
         layout,
     ],
 )
