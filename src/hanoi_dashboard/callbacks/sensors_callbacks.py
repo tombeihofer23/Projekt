@@ -16,6 +16,7 @@ def register_sensors_callbacks(
 ) -> None:
     @app.callback(
         Output("output-status-notification-container", "children"),
+        Output("sensor-plot-update-trigger", "data"),
         Input("interval-component", "n_intervals"),
         Input("fetch-data-button", "n_clicks"),
         prevent_initial_call=True,
@@ -41,7 +42,7 @@ def register_sensors_callbacks(
                 action="show",
                 message=f"API Fetch successful. Processed {inserted_cols} readings.",
                 position="bottom-left",
-            )
+            ), {"status": "success", "new_data": True}
         else:
             return dmc.Notification(
                 title="Fehler!",
@@ -49,14 +50,15 @@ def register_sensors_callbacks(
                 action="show",
                 message="Failed to fetch data.",
                 position="bottom-left",
-            )
+            ), dash.no_update
 
     @app.callback(
         Output("graph-grid", "children"),
         Input("sensors-multi-select", "value"),
         Input("date-input-range-picker", "value"),
+        Input("sensor-plot-update-trigger", "data"),
     )
-    def update_graphs(sensors: list, date_range: list):
+    def update_graphs(sensors: list, date_range: list, trigger):  # pylint: disable=unused-argument
         min_date: datetime = datetime.now().date() - timedelta(days=2)
         max_date: datetime = datetime.now().date()
 
