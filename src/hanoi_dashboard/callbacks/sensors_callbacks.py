@@ -34,9 +34,7 @@ def register_sensors_callbacks(
         data: pd.DataFrame = sense_box_api.fetch_new_sensor_data_for_one_box()
 
         if data is not None and not data.empty:
-            inserted_cols = db_service.write_new_sensor_data(
-                data, "5d6d5269953683001ae46adc"
-            )
+            inserted_cols = db_service.write_new_sensor_data(data)
             return dmc.Notification(
                 title="Daten geladen!",
                 autoClose=5000,

@@ -18,8 +18,9 @@ from src.hanoi_dashboard.utils import SensorDataModel
 
 
 class SensorDataWriteService:
-    def __init__(self, db_con: DbCon) -> None:
+    def __init__(self, db_con: DbCon, box_id: str) -> None:
         self.db_con = db_con
+        self.box_id = box_id
 
     @staticmethod
     def exists_sensor_data_point(
@@ -33,7 +34,7 @@ class SensorDataWriteService:
         num_of_rows: Final = session.scalar(statement)
         return num_of_rows is not None and num_of_rows > 0
 
-    def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> int:
+    def write_new_sensor_data(self, data: pd.DataFrame) -> int:
         if data is None or data.empty:
             logger.error("No data provided to write")
 
@@ -58,7 +59,7 @@ class SensorDataWriteService:
                         session.flush(objects=[sensor_data_point])
                         session.commit()
                         insert_count += 1
-        logger.info("Processed {} rows for box_id {}", insert_count, box_id)
+        logger.info("Processed {} rows for box_id {}", insert_count, self.box_id)
         return insert_count
 
     def bulk_write_sensor_data_to_db(self, data_dir_path: Path) -> None:
@@ -97,13 +98,14 @@ class SensorDataWriteService:
 
 
 class SensorDataQueryService:
-    def __init__(self, db_con: DbCon) -> None:
+    def __init__(self, db_con: DbCon, box_id: str) -> None:
         self.db_con = db_con
+        self.box_id = box_id
 
-    def query_all_data(self, box_id: str) -> pd.DataFrame:
-        logger.info("Querying all data for box_id {}.", box_id)
+    def query_all_data(self) -> pd.DataFrame:
+        logger.info("Querying all data for box_id {}.", self.box_id)
         try:
-            query = select(SensorData).where(SensorData.box_id == box_id)
+            query = select(SensorData).where(SensorData.box_id == self.box_id)
             with self.db_con.get_session()() as session:
                 df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
             logger.info("Retrieved {} data points from db.", len(df))
@@ -117,7 +119,7 @@ class SensorDataQueryService:
         return None
 
     def query_sensors_metadata(self) -> pd.DataFrame:
-        # logger.info("Query sensor metadata for box_id {}.", box_id)
+        logger.info("Query sensor metadata for box_id {}.", self.box_id)
         try:
             query = select(SensorMetadata)
             with self.db_con.get_session()() as session:
@@ -126,15 +128,16 @@ class SensorDataQueryService:
         except SQLAlchemyError as e:
             logger.error("SQLAlchemy error while querying data: {}", e)
 
-    def query_data_from_a_date_on(self, box_id: str, from_date: date) -> pd.DataFrame:
+    def query_data_from_a_date_on(self, from_date: date) -> pd.DataFrame:
         logger.info(
             "Querying data for box_id {} from {} to now.",
-            box_id,
+            self.box_id,
             from_date.strftime("%Y-%m-%d"),
         )
         try:
             query = select(SensorData).where(
-                cast(SensorData.timestamp, Date) > from_date
+                (SensorData.box_id == self.box_id)
+                & (cast(SensorData.timestamp, Date) > from_date)
             )
             with self.db_con.get_session()() as session:
                 df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
@@ -218,27 +221,30 @@ class SensorDataQueryService:
 
 
 class SensorDataDbService:
-    def __init__(self, db_con: DbCon) -> None:
+    def __init__(self, db_con: DbCon, box_id: str) -> None:
         self.db_con = db_con
+        self.box_id = box_id
 
-        self.sensor_data_write_service = SensorDataWriteService(self.db_con)
-        self.sensor_data_query_servive = SensorDataQueryService(self.db_con)
+        self.sensor_data_write_service = SensorDataWriteService(
+            self.db_con, self.box_id
+        )
+        self.sensor_data_query_servive = SensorDataQueryService(
+            self.db_con, self.box_id
+        )
 
     # Write data in db
-    def write_new_sensor_data(self, data: pd.DataFrame, box_id: str) -> int:
-        return self.sensor_data_write_service.write_new_sensor_data(data, box_id)
+    def write_new_sensor_data(self, data: pd.DataFrame) -> int:
+        return self.sensor_data_write_service.write_new_sensor_data(data)
 
     def bulk_write_sensor_data_to_db(self, data_dir_path: Path) -> None:
         self.sensor_data_write_service.bulk_write_sensor_data_to_db(data_dir_path)
 
     # Get data from db
-    def query_all_data(self, box_id: str) -> pd.DataFrame:
-        return self.sensor_data_query_servive.query_all_data(box_id)
+    def query_all_data(self) -> pd.DataFrame:
+        return self.sensor_data_query_servive.query_all_data()
 
-    def query_data_from_a_date_on(self, box_id: str, from_date: date) -> pd.DataFrame:
-        return self.sensor_data_query_servive.query_data_from_a_date_on(
-            box_id, from_date
-        )
+    def query_data_from_a_date_on(self, from_date: date) -> pd.DataFrame:
+        return self.sensor_data_query_servive.query_data_from_a_date_on(from_date)
 
     def query_plot_data(
         self, sensor_ids: list[str], date_range: list[pd.Timestamp]
@@ -254,11 +260,9 @@ class SensorDataDbService:
 
 
 if __name__ == "__main__":
-    db_service = SensorDataDbService(DbCon())
+    db_service = SensorDataDbService(DbCon(), "5d6d5269953683001ae46adc")
 
-    tdf = db_service.query_data_from_a_date_on(
-        "5d6d5269953683001ae46adc", date(2025, 4, 15)
-    )
+    tdf = db_service.query_data_from_a_date_on(date(2025, 4, 15))
     print(tdf.head())
     print(len(tdf))
     # data_path = (
