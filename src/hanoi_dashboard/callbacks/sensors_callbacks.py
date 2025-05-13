@@ -76,8 +76,6 @@ def register_sensors_callbacks(
             if None not in date_range:
                 min_date: pd.Timestamp = pd.to_datetime(date_range[0])
                 max_date: pd.Timestamp = pd.to_datetime(date_range[1])
-            else:
-                dash.no_update  # pylint: disable=pointless-statement
 
         grid_columns: list = []
 
