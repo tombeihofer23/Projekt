@@ -17,26 +17,28 @@ services:
         timeout: 5s
         retries: 5
 
-#   app:
-#     build:
-#       context: ./app
-#       dockerfile: Dockerfile
-#     container_name: dash_app
-#     ports:
-#       - "8050:8050" # Map host port 8050 to container port 8050
-#     environment:
-#       DB_USER: user
-#       DB_PASSWORD: password
-#       DB_HOST: db # Service name from docker-compose
-#       DB_PORT: 5432 # Internal port of the DB container
-#       DB_NAME: env_monitoring
-#       SENSEBOX_ID: "6252afcfd7e732001bb6b9f7" # Example Sensebox ID, change as needed
-#       API_URL_FORMAT: "https://api.opensensemap.org/boxes/{sensebox_id}?format={response_format}"
-#     depends_on:
-#       db:
-#         condition: service_healthy # Wait for the database container to be up and running
-#     volumes:
-#       - ./app:/app # Mount local app code into container for development (optional)
+  # app:
+  #   build:
+  #     context: ./
+  #     dockerfile: Dockerfile
+  #   container_name: dash_app
+  #   ports:
+  #     - "8050:8050" # Map host port 8050 to container port 8050
+  #   environment:
+  #     DB_USER: user
+  #     DB_PASSWORD: password
+  #     DB_HOST: db # Service name from docker-compose
+  #     DB_PORT: 5432 # Internal port of the DB container
+  #     DB_NAME: env_monitoring
+  #     # SENSEBOX_ID: "6252afcfd7e732001bb6b9f7" # Example Sensebox ID, change as needed
+  #     # API_URL_FORMAT: "https://api.opensensemap.org/boxes/{sensebox_id}?format={response_format}"
+  #     LOAD_DATA: true
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy # Wait for the database container to be up and running
+  #   volumes:
+  #     - ./app:/app # Mount local app code into container for development (optional)
+  #   entrypoint: ["./entrypoint.sh"]
 
 volumes:
   timescaledb_data: # Define the named volume

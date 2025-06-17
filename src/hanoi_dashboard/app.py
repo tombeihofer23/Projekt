@@ -39,7 +39,7 @@ app.layout = dmc.MantineProvider(
         # automatische Abfrage neuer Daten alle 10 Minuten
         dcc.Interval(
             id="interval-component",
-            interval=10 * 60 * 1000,  # 10min in Millisekunden
+            interval=4 * 60 * 1000,  # 4min in Millisekunden
             n_intervals=0,
         ),
         dmc.NotificationProvider(),

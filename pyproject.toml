@@ -15,7 +15,7 @@ dependencies = [
     "pandas>=2.2.3",
     "plotly>=6.0.1",
     "polars>=1.29.0",
-    "prophet>=1.1.6",
+    # "prophet>=1.1.6",
     "psycopg2-binary>=2.9.10",
     "pyaml>=25.1.0",
     "pyarrow>=19.0.1",
@@ -24,7 +24,8 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "seaborn>=0.13.2",
     "sqlalchemy>=2.0.40",
-    "statsmodels>=0.14.4",
+    # "statsmodels>=0.14.4",
+    # "torch>=2.7.0",
 ]
 
 [dependency-groups]
