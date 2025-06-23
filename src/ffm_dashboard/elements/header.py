@@ -31,7 +31,7 @@ def create_header():
                             ),
                             # dmc.Image(src=logo, h=40),
                             dmc.Title(
-                                children=f"OpenSenseMap Sensor Data (Box: {'6252afcfd7e732001bb6b9f7'})",
+                                children="FFM Westend Süd Sensor Data",
                                 c="red",
                             ),
                         ],
