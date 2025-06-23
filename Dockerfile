@@ -1,14 +1,7 @@
-# An example using multi-stage image builds to create a final image without uv.
-
-# First, build the application in the `/app` directory.
-# See `Dockerfile` for details.
+# Stage 1: Builder mit uv 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
-# Disable Python downloads, because we want to use the system interpreter
-# across both images. If using a managed Python version, it needs to be
-# copied from the build image into the final image; see `standalone.Dockerfile`
-# for an example.
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 ENV UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
@@ -26,11 +19,17 @@ FROM python:3.12-slim-bookworm
 # Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
 # will fail.
 
+WORKDIR /app
+
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app
+
+RUN chmod +x /app/entrypoint.sh
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
+EXPOSE 8050
+
 # Run the plotly dash application by default
-CMD ["uv", "run", "start.py"]
+ENTRYPOINT ["/app/entrypoint.sh"]

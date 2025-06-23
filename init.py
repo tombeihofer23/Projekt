@@ -1,13 +1,24 @@
 from pathlib import Path
 from typing import Final
 
-from src.ffm_dashboard.app import DB_SERVICE, SENSE_BOX_API
+from loguru import logger
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
 
-DB_PATH: Final = Path("data/...")
+from src.ffm_dashboard.app import DB_CON, DB_SERVICE, SENSE_BOX_API
+
+DATA_PATH: Final = Path(__file__).parent / "data"
 
 
-def data_already_exists():
-    return DB_PATH.exists()
+def is_database_ready():
+    try:
+        with DB_CON.get_session()() as session:
+            session.execute(text("SELECT 1"))
+        logger.info("Verbindung zur Datenbank erfolgreich!")
+        return True
+    except OperationalError:
+        logger.error("Datenbank ist nicht erreichbar - abbruch des Vorgangs!")
+        return False
 
 
 def load_and_store_data():
@@ -15,8 +26,12 @@ def load_and_store_data():
     DB_SERVICE.bulk_write_sensor_data_to_db(DB_PATH)
 
 
+def start_app():
+    if not is_database_ready():
+        return 0
+
+    SEN
+
+
 if __name__ == "__main__":
-    if data_already_exists():
-        print("Datenbank existiert bereits – Initialisierung wird übersprungen.")
-    else:
-        load_and_store_data()
+    start_app()

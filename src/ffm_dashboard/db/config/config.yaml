@@ -1,5 +1,5 @@
 name: env_monitoring
 user: user
 password: password
-host: localhost
+host: db
 port: 5432
