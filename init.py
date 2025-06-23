@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Final
 
-from src.hanoi_dashboard.app import DB_SERVICE, SENSE_BOX_API
+from src.ffm_dashboard.app import DB_SERVICE, SENSE_BOX_API
 
 DB_PATH: Final = Path("data/...")
 

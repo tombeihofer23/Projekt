@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.hanoi_dashboard.db import Base
+from src.ffm_dashboard.db import Base
 
 
 class SensorMetadata(Base):

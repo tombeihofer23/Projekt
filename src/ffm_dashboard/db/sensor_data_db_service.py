@@ -12,9 +12,9 @@ from sqlalchemy import Date, cast, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.hanoi_dashboard.db import DbCon, SensorData, SensorMetadata
-from src.hanoi_dashboard.plots import PlotData
-from src.hanoi_dashboard.utils import SensorDataModel
+from src.ffm_dashboard.db import DbCon, SensorData, SensorMetadata
+from src.ffm_dashboard.plots import PlotData
+from src.ffm_dashboard.utils import SensorDataModel
 
 
 class SensorDataWriteService:

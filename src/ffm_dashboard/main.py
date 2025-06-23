@@ -1,4 +1,4 @@
-from src.hanoi_dashboard.app import app
+from src.ffm_dashboard.app import app
 
 
 def main():

@@ -4,13 +4,13 @@ import dash
 import dash_mantine_components as dmc
 from dash import Dash, dcc
 
-from src.hanoi_dashboard.callbacks import (
+from src.ffm_dashboard.callbacks import (
     register_app_callbacks,
     register_sensors_callbacks,
 )
-from src.hanoi_dashboard.components import SenseBoxApi
-from src.hanoi_dashboard.db import DbCon, SensorDataDbService
-from src.hanoi_dashboard.elements import create_header, create_navbar
+from src.ffm_dashboard.components import SenseBoxApi
+from src.ffm_dashboard.db import DbCon, SensorDataDbService
+from src.ffm_dashboard.elements import create_header, create_navbar
 
 dmc.add_figure_templates(default="mantine_light")
 

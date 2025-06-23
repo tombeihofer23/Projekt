@@ -6,9 +6,9 @@ import pandas as pd
 from dash import Dash, Input, Output, ctx, dcc
 from loguru import logger
 
-from src.hanoi_dashboard.components import SenseBoxApi
-from src.hanoi_dashboard.db import SensorDataDbService
-from src.hanoi_dashboard.plots import Plot2D, PlotType2D
+from src.ffm_dashboard.components import SenseBoxApi
+from src.ffm_dashboard.db import SensorDataDbService
+from src.ffm_dashboard.plots import Plot2D, PlotType2D
 
 
 def register_sensors_callbacks(
