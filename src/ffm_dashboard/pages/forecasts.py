@@ -7,7 +7,12 @@ layout = dmc.Box(
     children=[
         dmc.Box(
             m=15,
-            children=["Forecast Page"],
+            children=[
+                dmc.Title("Temperaturvorhersagen für die nächsten 6 Stunden", order=2),
+                dmc.Box(
+                    children=["Forecast-Plot"],
+                ),
+            ],
         ),
     ],
 )
