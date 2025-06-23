@@ -6,6 +6,7 @@ from dash import Dash, dcc
 
 from src.ffm_dashboard.callbacks import (
     register_app_callbacks,
+    register_home_callbacks,
     register_sensors_callbacks,
 )
 from src.ffm_dashboard.components import SenseBoxApi
@@ -36,12 +37,13 @@ app.layout = dmc.MantineProvider(
     id="mantine-provider",
     forceColorScheme="light",
     children=[
-        # automatische Abfrage neuer Daten alle 10 Minuten
+        # automatische Abfrage neuer Daten alle 4 Minuten
         dcc.Interval(
             id="interval-component",
             interval=4 * 60 * 1000,  # 4min in Millisekunden
             n_intervals=0,
         ),
+        dcc.Location(id="url", refresh=False),
         dmc.NotificationProvider(),
         dcc.Store(id="sensor-plot-update-trigger"),
         layout,
@@ -54,4 +56,5 @@ DB_SERVICE: Final = SensorDataDbService(DB_CON, box_id="5d6d5269953683001ae46adc
 
 # Register callbacks
 register_app_callbacks(app)
+register_home_callbacks(app, SENSE_BOX_API)
 register_sensors_callbacks(app, SENSE_BOX_API, DB_SERVICE)
