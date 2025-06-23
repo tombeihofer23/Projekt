@@ -13,6 +13,8 @@ from src.ffm_dashboard.components import SenseBoxApi
 from src.ffm_dashboard.db import DbCon, SensorDataDbService
 from src.ffm_dashboard.elements import create_header, create_navbar
 
+SENSE_BOX_ID: Final = "5d6d5269953683001ae46adc"
+
 dmc.add_figure_templates(default="mantine_light")
 
 app = Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL)
@@ -50,9 +52,9 @@ app.layout = dmc.MantineProvider(
     ],
 )
 
-SENSE_BOX_API: Final = SenseBoxApi("5d6d5269953683001ae46adc")
+SENSE_BOX_API: Final = SenseBoxApi(SENSE_BOX_ID)
 DB_CON: Final = DbCon()
-DB_SERVICE: Final = SensorDataDbService(DB_CON, box_id="5d6d5269953683001ae46adc")
+DB_SERVICE: Final = SensorDataDbService(DB_CON, box_id=SENSE_BOX_ID)
 
 # Register callbacks
 register_app_callbacks(app)
