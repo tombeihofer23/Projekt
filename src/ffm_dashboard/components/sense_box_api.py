@@ -304,7 +304,8 @@ if __name__ == "__main__":
     # dff = sense_box_api.fetch_new_sensor_data_for_one_box()
 
     # binfo = sense_box_api.get_box_information()
-    # df = sense_box_api.get_sensors_information_for_box()
+    df = sense_box_api.get_sensors_information_for_box()
+    print(df)
     # dff = df.merge(sdf, on="sensor_id")
     # print(dff.head())
     # print(df)
