@@ -12,6 +12,7 @@ from sqlalchemy import Date, cast, func, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.ffm_dashboard.components import SenseBoxApi
 from src.ffm_dashboard.db import DbCon, SensorData, SensorMetadata
 from src.ffm_dashboard.plots import PlotData
 from src.ffm_dashboard.utils import SensorDataModel
@@ -95,6 +96,22 @@ class SensorDataWriteService:
             data_dir_path,
             end - start,
         )
+
+    def write_sensor_metadata(self) -> None:
+        sense_box_api = SenseBoxApi(self.box_id)
+        metadata_df: pd.DataFrame = sense_box_api.get_sensors_information_for_box()
+
+        with self.db_con.get_session()() as session:
+            try:
+                metadata_df.to_sql(
+                    name=SensorMetadata.__tablename__,
+                    con=session.bind,
+                    if_exists="fail",
+                    index=False,
+                )
+                logger.info("Wrote metadata table to db.")
+            except ValueError:
+                logger.info("Metadata table already exists.")
 
 
 class SensorDataQueryService:
@@ -239,6 +256,9 @@ class SensorDataDbService:
     def bulk_write_sensor_data_to_db(self, data_dir_path: Path) -> None:
         self.sensor_data_write_service.bulk_write_sensor_data_to_db(data_dir_path)
 
+    def write_sensor_metadata(self) -> None:
+        self.sensor_data_write_service.write_sensor_metadata()
+
     # Get data from db
     def query_all_data(self) -> pd.DataFrame:
         return self.sensor_data_query_servive.query_all_data()
@@ -262,9 +282,10 @@ class SensorDataDbService:
 if __name__ == "__main__":
     db_service = SensorDataDbService(DbCon(), "5d6d5269953683001ae46adc")
 
-    tdf = db_service.query_data_from_a_date_on(date(2025, 4, 15))
-    print(tdf.head())
-    print(len(tdf))
+    db_service.write_sensor_metadata()
+    # tdf = db_service.query_data_from_a_date_on(date(2025, 4, 15))
+    # print(tdf.head())
+    # print(len(tdf))
     # data_path = (
     #     Path(__file__).parent.parent.parent.parent / "data/5d6d5269953683001ae46adc"
     # )

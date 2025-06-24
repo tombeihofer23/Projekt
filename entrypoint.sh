@@ -1,11 +1,10 @@
 #!/bin/bash
 set -e
 
-# if [ "$LOAD_DATA" = "true" ] || [ ! -f "data/frankfurt.db" ]; then
-#   echo "Daten werden geladen (explizit oder erstmaliger Start)..."
-#   python initialize.py
-# else
-#   echo "Datenbank vorhanden – Initialisierung wird übersprungen."
-# fi
+if [ "$LOAD_DATA" = "true" ] ; then
+  python /app/init.py --with-historical
+else
+  python /app/init.py
+fi
 
 python /app/start.py

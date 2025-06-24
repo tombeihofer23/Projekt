@@ -32,7 +32,7 @@ services:
       DB_NAME: env_monitoring
       # SENSEBOX_ID: "6252afcfd7e732001bb6b9f7" # Example Sensebox ID, change as needed
       # API_URL_FORMAT: "https://api.opensensemap.org/boxes/{sensebox_id}?format={response_format}"
-      LOAD_DATA: true
+      LOAD_DATA: false
     depends_on:
       db:
         condition: service_healthy # Wait for the database container to be up and running

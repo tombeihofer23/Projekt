@@ -16,14 +16,14 @@ CREATE TABLE IF NOT EXISTS sensor_data (
 );
 
 -- Create sensor metadata table
-CREATE TABLE IF NOT EXISTS sensor_metadata AS
-	SELECT DISTINCT
-		sensor_id
-		,unit
-		,sensor_type
-		,icon
-		,title
-	FROM sensor_data;
+-- CREATE TABLE IF NOT EXISTS sensor_metadata AS
+-- 	SELECT DISTINCT
+-- 		sensor_id
+-- 		,unit
+-- 		,sensor_type
+-- 		,icon
+-- 		,title
+-- 	FROM sensor_data;
 
 -- Create the TimescaleDB hypertable, partitioning by time
 -- if_not_exists prevents error if script is run multiple times
