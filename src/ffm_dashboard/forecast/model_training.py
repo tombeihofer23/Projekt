@@ -4,6 +4,7 @@ from sqlalchemy import text
 from src.ffm_dashboard.db import DbCon
 from src.ffm_dashboard.forecast import (
     LSTMModel,
+    LSTMModelEvaluator,
     LSTMModelTrainer,
     TemperaturTrainDataHandler,
     TrainTestSplitter,
@@ -24,5 +25,7 @@ X_train, y_train, X_test, y_test = train_test_splitter.split()
 lstm_model = LSTMModel(input_size=X_train.shape[2])
 lstm_model_trainer = LSTMModelTrainer(lstm_model)
 lstm_model_trainer.train(X_train, y_train)
-# print(X_train.shape)
-# print(X_test.shape)
+
+lstm_model_evaluator = LSTMModelEvaluator(lstm_model)
+loss = lstm_model_evaluator.evaluate(X_test, y_test)
+print(loss)

@@ -1,4 +1,6 @@
+import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -33,3 +35,7 @@ class LSTMModelTrainer(IModelTrainer):
                 self.optimizer.step()
                 total_loss += loss.item()
             print(f"EPOCH {epoch + 1}/{self.epochs}, Loss: {total_loss:.4f}")
+
+        model_path: Path = Path(__file__).parent.parent / "trained_models"
+        os.makedirs(model_path, exist_ok=True)
+        torch.save(self.model.state_dict(), model_path / "lstm_model.pth")
