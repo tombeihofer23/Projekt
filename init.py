@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
 
-from src.ffm_dashboard.app import DB_CON, DB_SERVICE  # , SENSE_BOX_API
+from src.ffm_dashboard.app import DB_CON, DB_SERVICE, SENSE_BOX_API
 
 DATA_PATH: Final = Path(__file__).parent / "data"
 
@@ -22,9 +22,9 @@ def is_database_ready():
         return False
 
 
-# def load_and_store_data():
-#     SENSE_BOX_API.fetch_all_historical_data_for_one_box(DB_PATH)
-#     DB_SERVICE.bulk_write_sensor_data_to_db(DB_PATH)
+def load_and_store_historical_data():
+    SENSE_BOX_API.fetch_all_historical_data_for_one_box(DATA_PATH)
+    DB_SERVICE.bulk_write_sensor_data_to_db(DATA_PATH / f"{SENSE_BOX_API.box_id}")
 
 
 def start_app():
@@ -42,7 +42,11 @@ def start_app():
     DB_SERVICE.write_sensor_metadata()
 
     if args.with_historical:
-        print("lade historische Daten")
+        logger.warning(
+            "Alle historischen Daten der SenseBox werden geladen"
+            "und in DB geschrieben. Kann bis zu 1h oder länger dauern!"
+        )
+        load_and_store_historical_data()
 
 
 if __name__ == "__main__":
