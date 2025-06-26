@@ -88,9 +88,9 @@ as
 	where sensor_id = '5d6d5269953683001ae46ae0'
 	order by timestamp;
 
--- Create hourly aggregated materialized views
+-- Create hourly aggregated views
 
-create materialized view temperature_hourly_avg
+create view temperature_hourly_avg
 as
 	select 
 		date_trunc('hour', timestamp) as timestamp
@@ -99,7 +99,7 @@ as
 	group by date_trunc('hour', timestamp)
 	order by date_trunc('hour', timestamp);
 	
-create materialized view pm10_hourly_avg
+create view pm10_hourly_avg
 as
 	select 
 		date_trunc('hour', timestamp) as timestamp
@@ -108,7 +108,7 @@ as
 	group by date_trunc('hour', timestamp)
 	order by date_trunc('hour', timestamp);
 	
-create materialized view pm25_hourly_avg
+create view pm25_hourly_avg
 as
 	select 
 		date_trunc('hour', timestamp) as timestamp
@@ -117,7 +117,7 @@ as
 	group by date_trunc('hour', timestamp)
 	order by date_trunc('hour', timestamp);
 	
-create materialized view airPressure_hourly_avg
+create view airPressure_hourly_avg
 as
 	select 
 		date_trunc('hour', timestamp) as timestamp
@@ -126,7 +126,7 @@ as
 	group by date_trunc('hour', timestamp)
 	order by date_trunc('hour', timestamp);
 	
-create materialized view illuminance_hourly_avg
+create view illuminance_hourly_avg
 as
 	select 
 		date_trunc('hour', timestamp) as timestamp
@@ -135,7 +135,7 @@ as
 	group by date_trunc('hour', timestamp)
 	order by date_trunc('hour', timestamp);
 	
-create materialized view humidity_hourly_avg
+create view humidity_hourly_avg
 as
 	select 
 		date_trunc('hour', timestamp) as timestamp
@@ -144,9 +144,9 @@ as
 	group by date_trunc('hour', timestamp)
 	order by date_trunc('hour', timestamp);
 	
--- Create daily aggregated materialized views
+-- Create daily aggregated views
 
-create materialized view temperature_daily_avg
+create view temperature_daily_avg
 as
 	select 
 		date_trunc('day', timestamp) as timestamp
@@ -155,7 +155,7 @@ as
 	group by date_trunc('day', timestamp)
 	order by date_trunc('day', timestamp);
 	
-create materialized view pm10_daily_avg
+create view pm10_daily_avg
 as
 	select 
 		date_trunc('day', timestamp) as timestamp
@@ -164,7 +164,7 @@ as
 	group by date_trunc('day', timestamp)
 	order by date_trunc('day', timestamp);
 	
-create materialized view pm25_daily_avg
+create view pm25_daily_avg
 as
 	select 
 		date_trunc('day', timestamp) as timestamp
@@ -173,7 +173,7 @@ as
 	group by date_trunc('day', timestamp)
 	order by date_trunc('day', timestamp);
 	
-create materialized view airPressure_daily_avg
+create view airPressure_daily_avg
 as
 	select 
 		date_trunc('day', timestamp) as timestamp
@@ -182,7 +182,7 @@ as
 	group by date_trunc('day', timestamp)
 	order by date_trunc('day', timestamp);
 	
-create materialized view illuminance_daily_avg
+create view illuminance_daily_avg
 as
 	select 
 		date_trunc('day', timestamp) as timestamp
@@ -191,7 +191,7 @@ as
 	group by date_trunc('day', timestamp)
 	order by date_trunc('day', timestamp);
 	
-create materialized view humidity_daily_avg
+create view humidity_daily_avg
 as
 	select 
 		date_trunc('day', timestamp) as timestamp
