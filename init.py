@@ -24,7 +24,7 @@ def is_database_ready():
 
 def load_and_store_historical_data():
     SENSE_BOX_API.fetch_all_historical_data_for_one_box(DATA_PATH)
-    DB_SERVICE.bulk_write_sensor_data_to_db(DATA_PATH / f"{SENSE_BOX_API.box_id}")
+    DB_SERVICE.bulk_write_sensor_data_to_db(DATA_PATH)
 
 
 def start_app():
