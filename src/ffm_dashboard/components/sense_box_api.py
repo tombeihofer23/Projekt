@@ -261,6 +261,26 @@ class SenseBoxDataLoader:
             output_dir_path,
         )
 
+    def fetch_temp_data_for_forecast(self) -> pd.DataFrame:
+        now: datetime = datetime.now()  # - timedelta(minutes=10)
+        then: datetime = now - timedelta(hours=8)
+
+        logger.info("Fetch data from {} to {} for temperatur sensor", then, now)
+        df: pd.DataFrame = self.fetch_historical_data_for_one_sensor(
+            "5d6d5269953683001ae46ae1",
+            from_date=then.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+            to_date=now.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        )
+        df = (
+            df.sort_values("timestamp")
+            .reset_index(drop=True)
+            .drop(columns=["box_id", "sensor_id"])
+        )
+
+        df["measurement"] = df["measurement"].astype(float)
+        df["timestamp"] = df["timestamp"].map(lambda x: x.tz_convert("Europe/Berlin"))
+        return df
+
 
 class SenseBoxApi:
     def __init__(self, box_id: str) -> None:
@@ -283,6 +303,9 @@ class SenseBoxApi:
     def fetch_all_historical_data_for_one_box(self, output_dir_path: Path) -> None:
         return self.data_loader.fetch_all_historical_data_for_one_box(output_dir_path)
 
+    def fetch_temp_data_for_forecast(self) -> pd.DataFrame:
+        return self.data_loader.fetch_temp_data_for_forecast()
+
     # Get informations about the sense box
     def get_box_information(self) -> dict:
         return self.data_loader.get_box_information()
@@ -295,17 +318,19 @@ if __name__ == "__main__":
     sense_box_api = SenseBoxApi("5d6d5269953683001ae46adc")
     # sdf = sense_box_api.fetch_historical_data_for_one_sensor(
     #     "5d6d5269953683001ae46ae1",
-    #     from_date="2022-03-30T00:00:00Z",
-    #     to_date="2022-04-03T23:59:59Z",
+    #     from_date="2025-06-26T10:00:00Z",
+    #     to_date="2025-06-26T16:00:00Z",
     # )
     # print(sdf.head())
     # print(len(sdf))
+    fdf = sense_box_api.fetch_temp_data_for_forecast()
+    print(fdf)
 
     # dff = sense_box_api.fetch_new_sensor_data_for_one_box()
 
     # binfo = sense_box_api.get_box_information()
-    df = sense_box_api.get_sensors_information_for_box()
-    print(df)
+    # df = sense_box_api.get_sensors_information_for_box()
+    # print(df)
     # dff = df.merge(sdf, on="sensor_id")
     # print(dff.head())
     # print(df)
