@@ -8,9 +8,17 @@ layout = dmc.Box(
         dmc.Box(
             m=15,
             children=[
-                dmc.Title("Temperaturvorhersagen für die nächsten 6 Stunden", order=2),
+                dmc.Title(
+                    "Temperaturvorhersagen für die nächsten 1.5 Stunden", order=2
+                ),
+                dmc.Button(
+                    "New Forecast",
+                    id="fetch-forecast-button",
+                    variant="filled",
+                    color="red",
+                ),
                 dmc.Box(
-                    children=["Forecast-Plot"],
+                    children=[dmc.Box(id="forecast-graph-container", children=[])],
                 ),
             ],
         ),

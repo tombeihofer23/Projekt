@@ -6,6 +6,7 @@ from src.ffm_dashboard.forecast_neu.components.data_preparation import (
     MultiStepPreprocessor,
 )
 from src.ffm_dashboard.forecast_neu.components.prediction import MultiLGBMPredictor
+from src.ffm_dashboard.plots import PlotData
 
 
 class MultiLGBMForecastPipeline:
@@ -22,8 +23,16 @@ class MultiLGBMForecastPipeline:
 
         pred_df = pd.DataFrame({"timestamp": timestamps})
         pred_df["measurement"] = self.y_pred
-        pred_df["q"] = "Prognose"
+        pred_df["q"] = "pred"
 
-        self.df["q"] = "Live-Messwerte"
+        self.df["q"] = "real"
+        forecast_df = pd.concat([self.df, pred_df], ignore_index=True)
 
-        return pd.concat([self.df, pred_df], ignore_index=True)
+        plot_data: PlotData = PlotData(
+            x=forecast_df.timestamp,
+            y=forecast_df[["measurement", "q"]],
+            title="Temperatur",
+            unit="°C",
+        )
+
+        return plot_data

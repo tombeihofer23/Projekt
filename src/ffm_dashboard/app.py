@@ -6,6 +6,7 @@ from dash import Dash, dcc
 
 from src.ffm_dashboard.callbacks import (
     register_app_callbacks,
+    register_forecast_callbacks,
     register_home_callbacks,
     register_sensors_callbacks,
 )
@@ -60,3 +61,4 @@ DB_SERVICE: Final = SensorDataDbService(DB_CON, box_id=SENSE_BOX_ID)
 register_app_callbacks(app)
 register_home_callbacks(app, SENSE_BOX_API)
 register_sensors_callbacks(app, SENSE_BOX_API, DB_SERVICE)
+register_forecast_callbacks(app, SENSE_BOX_API)

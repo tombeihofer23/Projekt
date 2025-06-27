@@ -48,14 +48,14 @@ class Plot2D:
         func()
 
     def create_2D_sensor_plot(self) -> None:
-        self.update_layout()
-        self.update_traces()
+        self.update_layout_sensor()
+        self.update_traces_sensor()
 
     def create_2D_forecast_plot(self) -> None:
-        self.update_layout()
-        self.update_traces()
+        self.update_layout_forecast()
+        self.update_traces_forecast()
 
-    def update_layout(self) -> None:
+    def update_layout_sensor(self) -> None:
         with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.update_layout(
@@ -66,7 +66,7 @@ class Plot2D:
             height=config["layout"]["height"],
         )
 
-    def update_traces(self) -> None:
+    def update_traces_sensor(self) -> None:
         with self.config_path.open("r") as c:
             config: dict = yaml.safe_load(c)
         self.fig.add_trace(
@@ -75,6 +75,45 @@ class Plot2D:
                 y=self.data.y,
                 mode=config["trace"]["mode"],
                 name=self.data.title,
+            )
+        )
+
+    def update_layout_forecast(self) -> None:
+        with self.config_path.open("r", encoding="utf-8") as c:
+            config: dict = yaml.safe_load(c)
+        self.fig.update_layout(
+            title=config["title"],
+            xaxis_title=config["layout"]["xaxis"],
+            yaxis_title=f"{self.data.title} ({self.data.unit})",
+            margin=config["layout"]["margin"],
+            height=config["layout"]["height"],
+        )
+
+    def update_traces_forecast(self) -> None:
+        with self.config_path.open("r") as c:
+            config: dict = yaml.safe_load(c)
+        y = self.data.y
+        x = self.data.x
+        y_real = y[y["q"] == "real"]
+        x_real = x[: len(y_real)]
+        y_pred = y[y["q"] == "pred"]
+        x_pred = x[len(y_real) :]
+        self.fig.add_trace(
+            go.Scatter(
+                x=x_real,
+                y=y_real["measurement"],
+                mode=config["trace"]["mode"],
+                name=self.data.title,
+                line=dict(color="blue"),
+            )
+        )
+        self.fig.add_trace(
+            go.Scatter(
+                x=x_pred,
+                y=y_pred["measurement"],
+                mode=config["trace"]["mode"],
+                name=self.data.title,
+                line=dict(color="red"),
             )
         )
 

@@ -1,0 +1,13 @@
+layout:
+  xaxis: Datum
+  margin:
+    l: 20
+    r: 20
+    t: 30
+    b: 30
+  height: 415
+
+trace:
+  mode: lines
+
+title: Temperaturentwicklung
