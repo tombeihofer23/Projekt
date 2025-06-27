@@ -12,9 +12,12 @@ layout = dmc.Box(
                     "Information zu der SenseBox in Frankfurt Westend Süd", order=2
                 ),
                 dmc.Box(
-                    "Informationen über Sensebox... Karte, wo die Box steht, Bild von Box"
+                    children=[
+                        dmc.Group(id="sensebox-info-group"),
+                        "Informationen über Sensebox... Karte, wo die Box steht, Bild von Box",
+                    ]
                 ),
-                dmc.Title("Sensorinformationen", order=2),
+                dmc.Title("Sensorinformationen", order=2, mb=15),
                 dmc.Box(
                     children=[
                         dmc.Grid(
