@@ -17,7 +17,7 @@ class PlotType2D(Enum):
 @dataclass
 class PlotData:
     x: pd.Series
-    y: pd.Series
+    y: pd.Series | pd.DataFrame
     title: str
     unit: str
     # header: str = ""
@@ -67,7 +67,7 @@ class Plot2D:
         )
 
     def update_traces_sensor(self) -> None:
-        with self.config_path.open("r") as c:
+        with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.add_trace(
             go.Scattergl(
@@ -82,15 +82,23 @@ class Plot2D:
         with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.update_layout(
-            title=config["title"],
+            # title=config["title"],
             xaxis_title=config["layout"]["xaxis"],
             yaxis_title=f"{self.data.title} ({self.data.unit})",
             margin=config["layout"]["margin"],
             height=config["layout"]["height"],
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.05,
+                xanchor="left",
+                x=0,
+                font=dict(size=20),
+            ),
         )
 
     def update_traces_forecast(self) -> None:
-        with self.config_path.open("r") as c:
+        with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         y = self.data.y
         x = self.data.x
@@ -98,13 +106,16 @@ class Plot2D:
         x_real = x[: len(y_real)]
         y_pred = y[y["q"] == "pred"]
         x_pred = x[len(y_real) :]
+
         self.fig.add_trace(
             go.Scatter(
                 x=x_real,
                 y=y_real["measurement"],
                 mode=config["trace"]["mode"],
-                name=self.data.title,
-                line=dict(color="blue"),
+                name=config["trace"]["real"]["legende"],
+                line=dict(color=config["trace"]["real"]["color"]),
+                hovertemplate=config["trace"]["hover"],
+                visible="legendonly",
             )
         )
         self.fig.add_trace(
@@ -112,8 +123,9 @@ class Plot2D:
                 x=x_pred,
                 y=y_pred["measurement"],
                 mode=config["trace"]["mode"],
-                name=self.data.title,
-                line=dict(color="red"),
+                name=config["trace"]["pred"]["legende"],
+                line=dict(color=config["trace"]["pred"]["color"]),
+                hovertemplate=config["trace"]["hover"],
             )
         )
 
