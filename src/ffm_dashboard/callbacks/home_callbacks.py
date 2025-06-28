@@ -20,10 +20,10 @@ def register_home_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
             go.Scattermapbox(
                 lat=[lat],
                 lon=[lon],
-                mode="markers+text",  # auch Text anzeigen
+                mode="markers+text",
                 marker=go.scattermapbox.Marker(
-                    size=12,  # Punktgröße
-                    color="red",  # Farbe
+                    size=12,
+                    color="red",
                 ),
                 text=sensebox_info["name"],
                 textposition="top left",
@@ -32,11 +32,18 @@ def register_home_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
 
         fig.update_layout(
             mapbox_style="open-street-map",
-            mapbox_zoom=14,
+            mapbox_zoom=12,
             mapbox_center={"lat": lat, "lon": lon},
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
-        return dcc.Graph(figure=fig)
+
+        img = dmc.Image(
+            src=f"https://opensensemap.org/userimages/{sensebox_info['image']}",
+            h=475,
+            alt="Sensebox Installation",
+        )
+
+        return [dcc.Graph(figure=fig), img]
 
     @app.callback(Output("sensor-info-grid", "children"), Input("url", "pathname"))
     def load_sensor_info_cards(path: str):
