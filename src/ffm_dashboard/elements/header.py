@@ -29,10 +29,13 @@ def create_header():
                                 # hiddenFrom="sm",
                                 opened=False,
                             ),
-                            # dmc.Image(src=logo, h=40),
+                            dmc.Image(
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Coat_of_arms_of_Frankfurt_%28temporarily_in_Weimar_Republic%29.svg/250px-Coat_of_arms_of_Frankfurt_%28temporarily_in_Weimar_Republic%29.svg.png",
+                                h=40,
+                            ),
                             dmc.Title(
-                                children="FFM Westend Süd Sensor Data",
-                                c="red",
+                                children="FFM Westend Süd SenseBox Dashboard",
+                                c="#a81b00",
                             ),
                         ],
                     ),

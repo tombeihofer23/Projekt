@@ -1,0 +1,18 @@
+layout:
+  xaxis: Datum
+  margin:
+    l: 20
+    r: 20
+    t: 30
+    b: 30
+  height: 500
+
+trace:
+  mode: lines
+  real:
+    color: blue
+    legende: Live-Messwerte der letzten 6h
+  pred:
+    color: "#a81b00"
+    legende: Prognose für die nächsten 1.5h
+  hover: "%{x|%H:%M Uhr}<br>%{y} °C<br><extra></extra>"

@@ -9,6 +9,7 @@ layout:
 
 trace:
   mode: lines
+  color: "#a81b00"
 
 title:
   Temperatur: Lufttemperatur in {}
