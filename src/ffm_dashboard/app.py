@@ -19,7 +19,7 @@ SENSE_BOX_ID: Final = "5d6d5269953683001ae46adc"
 dmc.add_figure_templates(default="mantine_light")
 
 app = Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL)
-app.title = "Hanoi Sensor Data Dashboard"
+app.title = "FFM Sensor Data Dashboard"
 
 layout = dmc.AppShell(
     [
