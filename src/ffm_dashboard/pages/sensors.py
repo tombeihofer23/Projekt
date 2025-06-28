@@ -8,6 +8,11 @@ dash.register_page(__name__, path="/sensors")
 
 layout = dmc.Box(
     children=[
+        dcc.Interval(
+            id="interval-component",
+            interval=4 * 60 * 1000,  # 4min in Millisekunden
+            n_intervals=0,
+        ),
         dmc.Box(
             m=15,
             children=[

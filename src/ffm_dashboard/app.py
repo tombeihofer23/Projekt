@@ -18,7 +18,12 @@ SENSE_BOX_ID: Final = "5d6d5269953683001ae46adc"
 
 dmc.add_figure_templates(default="mantine_light")
 
-app = Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL)
+app = Dash(
+    __name__,
+    use_pages=True,
+    external_stylesheets=dmc.styles.ALL,
+    suppress_callback_exceptions=True,
+)
 app.title = "FFM Sensor Data Dashboard"
 
 layout = dmc.AppShell(
@@ -40,12 +45,6 @@ app.layout = dmc.MantineProvider(
     id="mantine-provider",
     forceColorScheme="light",
     children=[
-        # automatische Abfrage neuer Daten alle 4 Minuten
-        dcc.Interval(
-            id="interval-component",
-            interval=4 * 60 * 1000,  # 4min in Millisekunden
-            n_intervals=0,
-        ),
         dcc.Location(id="url", refresh=False),
         dmc.NotificationProvider(),
         dcc.Store(id="sensor-plot-update-trigger"),
