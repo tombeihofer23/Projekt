@@ -13,6 +13,6 @@ trace:
     color: blue
     legende: Live-Messwerte der letzten 6h
   pred:
-    color: red
+    color: "#a81b00"
     legende: Prognose für die nächsten 1.5h
   hover: "%{x|%H:%M Uhr}<br>%{y} °C<br><extra></extra>"

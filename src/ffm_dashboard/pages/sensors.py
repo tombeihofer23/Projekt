@@ -73,7 +73,7 @@ layout = dmc.Box(
                             "Fetch Data",
                             id="fetch-data-button",
                             variant="filled",
-                            color="red",
+                            color="#a81b00",
                         ),  # Rechts außen
                     ],
                 ),
@@ -96,6 +96,7 @@ layout = dmc.Box(
                                 ],
                             ),
                             delay_hide=1000,
+                            color="#a81b00",
                         ),
                     ],
                 ),

@@ -75,6 +75,7 @@ class Plot2D:
                 y=self.data.y,
                 mode=config["trace"]["mode"],
                 name=self.data.title,
+                line=dict(color=config["trace"]["color"]),
             )
         )
 

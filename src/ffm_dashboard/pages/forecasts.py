@@ -21,7 +21,7 @@ layout = dmc.Box(
                             "New Forecast",
                             id="fetch-forecast-button",
                             variant="filled",
-                            color="red",
+                            color="#a81b00",
                         ),
                     ],
                 ),

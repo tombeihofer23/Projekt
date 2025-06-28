@@ -70,7 +70,7 @@ def register_home_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
                                 ),
                                 dmc.ActionIcon(
                                     get_icon(icon, 35),
-                                    color="red",
+                                    color="#a81b00",
                                     variant="transparent",
                                 ),
                             ],
