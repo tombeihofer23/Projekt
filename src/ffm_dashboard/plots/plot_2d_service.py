@@ -1,4 +1,4 @@
-# %%
+"""Klassen für die Plot-Erstellung."""
 
 from dataclasses import dataclass
 from enum import Enum
@@ -10,24 +10,55 @@ import yaml
 
 
 class PlotType2D(Enum):
+    """
+    Enum zur Auswahl des Plot-Typs.
+
+    - SENSOR: Reine Sensordaten
+    - FORECAST: Messwerte + Vorhersage
+    """
+
     SENSOR = 1
     FORECAST = 2
 
 
 @dataclass
 class PlotData:
+    """
+    Datenträger für 2D-Plotinformationen.
+
+    :param x: Zeitachse
+    :type x: pd.Series
+    :param y: Messwerte (Sensor oder Forecast)
+    :type y: pd.Series | pd.DataFrame
+    :param title: Titel des Plots (wird aus YAML übernommen)
+    :type title: str
+    :param unit: Einheit der Messgröße (z.B. °C)
+    :type unit: str
+    """
+
     x: pd.Series
     y: pd.Series | pd.DataFrame
     title: str
     unit: str
-    # header: str = ""
-
-    # def __post_init__(self):
-    #     # self.x: pd.DatetimeIndex = pd.to_datetime(self.x)
-    #     self.header = f"{self.title} ({self.unit})"
 
 
 class Plot2D:
+    """
+    Generiert interaktive 2D-Liniendiagramme für Sensorwerte oder Vorhersagedaten.
+
+    Unterstützt zwei Typen:
+    - Sensorplots (Echtzeitdaten)
+    - Forecastplots (Prognosedaten mit Trennung real/pred)
+
+    Die Konfigurationen werden aus YAML-Dateien gelesen, um Layout und Trace-Stil
+    flexibel anpassbar zu halten.
+
+    :param data: Plotdaten inklusive x/y-Werten, Titel und Einheit
+    :type data: PlotData
+    :param plot_type: Art des zu erzeugenden Plots (SENSOR oder FORECAST)
+    :type plot_type: PlotType2D
+    """
+
     def __init__(self, data: PlotData, plot_type: PlotType2D) -> None:
         self.data = data
         self.plot_type = plot_type
@@ -47,15 +78,31 @@ class Plot2D:
 
         func()
 
-    def create_2D_sensor_plot(self) -> None:
+    def create_2D_sensor_plot(self) -> None:  # pylint: disable=invalid-name
+        """
+        Erstellt ein Standard-Sensorplot bestehend aus einem Trace
+        und angepasstem Layout gemäß YAML-Konfiguration.
+        """
+
         self.update_layout_sensor()
         self.update_traces_sensor()
 
-    def create_2D_forecast_plot(self) -> None:
+    def create_2D_forecast_plot(self) -> None:  # pylint: disable=invalid-name
+        """
+        Erstellt ein Plot mit realen und prognostizierten Werten.
+        Reale Messwerte werden im Plot versteckt angezeigt (via Legendeneintrag),
+        Vorhersagen direkt dargestellt.
+        """
+
         self.update_layout_forecast()
         self.update_traces_forecast()
 
     def update_layout_sensor(self) -> None:
+        """
+        Lädt Layout-Einstellungen für Sensorplots aus YAML und
+        konfiguriert Titel, Achsentitel, Größe und Rand.
+        """
+
         with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.update_layout(
@@ -67,6 +114,8 @@ class Plot2D:
         )
 
     def update_traces_sensor(self) -> None:
+        """Fügt einen Plotly-Trace für Sensordaten gemäß Konfiguration hinzu."""
+
         with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.add_trace(
@@ -80,6 +129,8 @@ class Plot2D:
         )
 
     def update_layout_forecast(self) -> None:
+        """Lädt das Layout für Forecastplots und setzt Beschriftungen, Ränder und Legende."""
+
         with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         self.fig.update_layout(
@@ -99,6 +150,12 @@ class Plot2D:
         )
 
     def update_traces_forecast(self) -> None:
+        """
+        Trennt die Daten in reale und prognostizierte Werte basierend auf der Spalte `q`
+        und erstellt jeweils einen separaten Trace mit unterschiedlichen Farben und
+        Legendenbezeichnungen.
+        """
+
         with self.config_path.open("r", encoding="utf-8") as c:
             config: dict = yaml.safe_load(c)
         y = self.data.y
@@ -145,5 +202,3 @@ if __name__ == "__main__":
 
     fig = Plot2D(plot_data, PlotType2D.SENSOR).fig
     fig.show()
-
-# %%
