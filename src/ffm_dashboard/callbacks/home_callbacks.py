@@ -1,3 +1,5 @@
+"""Callbacks für die Home-Page."""
+
 import dash
 import dash_mantine_components as dmc
 import pandas as pd
@@ -9,8 +11,27 @@ from src.ffm_dashboard.utils import get_icon, get_infobox
 
 
 def register_home_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
+    """
+    Registriert alle notwendigen Callback-Funktionen für die Home-Page.
+
+    :param app: Die Instanz der Dash-Anwendung, zu der die Callbacks hinzugefügt werden sollen.
+    :type app: Dash
+    :param sense_box_api: Eine Instanz der SenseBoxApi zum Abrufen der Sensordaten
+    :type sense_box_api: SenseBoxApi
+    """
+
     @app.callback(Output("sensebox-info-group", "children"), Input("url", "pathname"))
     def load_sensebox_infos(path: str):
+        """
+        Lädt und zeigt Informationen zur aktuellen SenseBox auf der Startseite an,
+        einschließlich Kartenansicht und Bild. Diese Funktion wird nur aufgerufen,
+        wenn die URL der Seite auf ``"/"`` steht.
+
+        :param path: Der aktuelle Pfad der URL.
+        :type path: str
+        :return: Eine Liste aus einem Kartenplot (Mapbox) und einem Bild der SenseBox-Installation.
+        """
+
         if path != "/":
             return dash.no_update
 
@@ -47,6 +68,15 @@ def register_home_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
 
     @app.callback(Output("sensor-info-grid", "children"), Input("url", "pathname"))
     def load_sensor_info_cards(path: str):
+        """
+        Lädt Sensorinformationen zur aktuellen SenseBox und zeigt diese in einem Grid als Karten an.
+        Diese Funktion wird nur aufgerufen, wenn die URL der Seite auf ``"/"`` steht.
+
+        :param path: Der aktuelle Pfad der URL.
+        :type path: str
+        :return: Liste von Grid-Spalten, die jeweils eine Karte mit Sensorinformationen enthalten.
+        """
+
         if path != "/":
             return dash.no_update
 

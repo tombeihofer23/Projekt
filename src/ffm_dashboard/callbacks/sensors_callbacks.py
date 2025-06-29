@@ -1,3 +1,5 @@
+"""Callbacks für die Sensor-Page."""
+
 from datetime import datetime, timedelta
 
 import dash
@@ -14,6 +16,17 @@ from src.ffm_dashboard.plots import Plot2D, PlotType2D
 def register_sensors_callbacks(
     app: Dash, sense_box_api: SenseBoxApi, db_service: SensorDataDbService
 ) -> None:
+    """
+    Registriert alle notwendigen Callback-Funktionen für die Sensor-Page.
+
+    :param app: Die Instanz der Dash-Anwendung, zu der die Callbacks hinzugefügt werden sollen.
+    :type app: Dash
+    :param sense_box_api: Eine Instanz der SenseBoxApi zum Abrufen der Sensordaten
+    :type sense_box_api: SenseBoxApi
+    :param db_service: Eine Instanz des SensorDataDbService zum Schreiben und Lesen auf die DB
+    :type db_service: SensorDataDbService
+    """
+
     @app.callback(
         Output("output-status-notification-container", "children"),
         Output("sensor-plot-update-trigger", "data"),
@@ -22,6 +35,19 @@ def register_sensors_callbacks(
         prevent_initial_call=True,
     )
     def update_db_and_status(n_intervals: int, n_clicks: int) -> str:
+        """
+        Holt neue Sensordaten von der API und speichert sie in der Datenbank.
+        Gibt eine Statusbenachrichtigung zurück. Die Funktion wird entweder durch
+        ein Intervall oder einen Button-Klick ausgelöst.
+
+        :param n_intervals: Anzahl der abgelaufenen Intervalle
+        :type n_intervals: int
+        :param n_clicks: Anzahl der Klicks auf den Fetch-Button
+        :type n_clicks: int
+        :return: Eine Tuple mit einer Benachrichtigungskomponente und
+        einem Dictionary als Trigger für nachgelagerte Updates.
+        """
+
         trigger_id = ctx.triggered_id
         if trigger_id == "interval-component":
             logger.info(
@@ -59,6 +85,20 @@ def register_sensors_callbacks(
         Input("sensor-plot-update-trigger", "data"),
     )
     def update_graphs(sensors: list, date_range: list, trigger):  # pylint: disable=unused-argument
+        """
+        Erstellt Sensordiagramme basierend auf ausgewählten Sensoren und Datumsbereich.
+        Die Funktion wird aufgerufen, wenn sich die Sensorenauswahl oder das Datum ändert.
+        Bei fehlender Auswahl werden standardmäßig feste Sensoren und die letzten 2 Tage verwendet.
+
+        :param sensors: Liste der ausgewählten Sensor-IDs.
+        :type sensors: list | None
+        :param date_range: Start- und Enddatum als Strings oder Timestamps im Bereichspicker.
+        :type date_range: list | None
+        :param trigger: Datenobjekt zur Auslösung eines Updates (z.B. {"status": "success"}).
+        :type trigger: dict
+        :return: Eine Liste von Grid-Spalten mit jeweiligen Graph-Komponenten.
+        """
+
         min_date: datetime = datetime.now().date() - timedelta(days=2)
         max_date: datetime = datetime.now().date()
 
