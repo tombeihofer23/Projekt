@@ -1,3 +1,5 @@
+"""Header-Element für Dashboard."""
+
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 
@@ -17,6 +19,20 @@ theme_toggle = dmc.Switch(
 
 
 def create_header():
+    """
+    Erstellt das Header-Element der AppShell für das SenseBox-Dashboard.
+
+    Der Header enthält:
+
+    - Ein Burger-Menü (z.B. für Mobilgeräte oder Sidebar-Toggle)
+    - Ein Wappenbild (Frankfurter Stadtwappen)
+    - Einen farblich hervorgehobenen Titel des Dashboards
+    - Ein Theme-Toggle (z.B. Dark-/Light-Modus)
+
+    :return: Ein `AppShellHeader`-Komponentenobjekt von Dash Mantine Components.
+    :rtype: dmc.AppShellHeader
+    """
+
     return dmc.AppShellHeader(
         [
             dmc.Group(
@@ -30,7 +46,7 @@ def create_header():
                                 opened=False,
                             ),
                             dmc.Image(
-                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Coat_of_arms_of_Frankfurt_%28temporarily_in_Weimar_Republic%29.svg/250px-Coat_of_arms_of_Frankfurt_%28temporarily_in_Weimar_Republic%29.svg.png",
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Coat_of_arms_of_Frankfurt_%28temporarily_in_Weimar_Republic%29.svg/250px-Coat_of_arms_of_Frankfurt_%28temporarily_in_Weimar_Republic%29.svg.png",  # pylint: disable=line-too-long
                                 h=40,
                             ),
                             dmc.Title(
