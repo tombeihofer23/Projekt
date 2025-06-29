@@ -1,6 +1,7 @@
 import gc
 import json
 import os
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from timeit import default_timer as timer
@@ -53,21 +54,24 @@ class SenseBoxDataLoader:
         return intervals
 
     def get_response(self, url: str, params: dict = None) -> dict | None:
-        try:
-            response: Response = requests.get(url, params=params, timeout=15)
-            response.raise_for_status()
-            data: dict = response.json()
-            if not data:
-                logger.warning("No data found for box_id {}", self.box_id)
-                raise NoDataFoundError(url, params)
-            return data
+        for attempt in range(3):
+            try:
+                response: Response = requests.get(url, params=params, timeout=15)
+                response.raise_for_status()
+                data: dict = response.json()
+                if not data:
+                    logger.warning("No data found for box_id {}", self.box_id)
+                    raise NoDataFoundError(url, params)
+                return data
 
-        except requests.exceptions.RequestException as e:
-            logger.error("API request failed: {}", e)
-            return None
-        except (json.JSONDecodeError, KeyError, TypeError) as e:  # Added TypeError
-            logger.error("Failed to parse or process API response: {}", e)
-            return None
+            except requests.exceptions.RequestException as e:
+                logger.error("API request failed (attempt {}): {}", attempt + 1, e)
+                time.sleep(10)
+            except (json.JSONDecodeError, KeyError, TypeError) as e:  # Added TypeError
+                logger.error("Failed to parse or process API response: {}", e)
+                return None
+
+        return None
 
     def get_box_information(self) -> dict | None:
         data: dict = self.get_response(self.base_url)
