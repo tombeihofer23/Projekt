@@ -64,7 +64,7 @@ def register_forecast_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
                 children=[
                     dcc.Graph(
                         figure=plot.fig,
-                        id="forecast-plot",
+                        id={"type": "dynamic-graph", "index": "forecast"},
                     ),
                     dmc.Center(
                         dmc.Text(
