@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import dash_mantine_components as dmc
 import pandas as pd
@@ -15,7 +16,7 @@ def register_forecast_callbacks(app: Dash, sense_box_api: SenseBoxApi) -> None:
         Input("fetch-forecast-button", "n_clicks"),
     )
     def update_title(n_clicks: int):
-        now = datetime.now()
+        now = datetime.now(ZoneInfo("Europe/Berlin"))
         then = now + timedelta(minutes=90)
         title_str: str = f"Temperaturentwicklung von {now.strftime('%H:%M')} bis {then.strftime('%H:%M')} Uhr"
         return title_str
