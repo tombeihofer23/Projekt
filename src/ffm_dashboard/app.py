@@ -1,3 +1,5 @@
+"""Instanziierung der Plotly Dash App."""
+
 from typing import Final
 
 import dash
