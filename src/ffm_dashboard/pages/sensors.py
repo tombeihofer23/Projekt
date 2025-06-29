@@ -1,3 +1,5 @@
+"""Layout der Sensor-Page."""
+
 from datetime import date, datetime
 
 import dash

@@ -1,3 +1,5 @@
+"""Layout der Home-Page."""
+
 import dash
 import dash_mantine_components as dmc
 
