@@ -21,8 +21,17 @@ FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
+# Dos2unix installieren, falls noch nicht vorhanden
+RUN apt-get update && apt-get install -y \
+    dos2unix \
+    libgomp1 \
+&& rm -rf /var/lib/apt/lists/*
+
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app
+
+# Zeilenenden konvertieren
+RUN dos2unix /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 
