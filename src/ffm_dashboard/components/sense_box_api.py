@@ -1,3 +1,5 @@
+"""SenseBoxAPI-Klasse für die Abfragen der Sensordaten."""
+
 import gc
 import json
 import os
@@ -24,12 +26,35 @@ class NoDataFoundError(Exception):
 
 
 class SenseBoxDataLoader:
+    """
+    Eine Hilfsklasse zur Kommunikation mit der openSenseMap API, um Sensordaten
+    einer SenseBox abzurufen, zu verarbeiten und zu speichern.
+
+    :param base_url: Basis-URL zur SenseBox-API für eine spezifische Box.
+    :type base_url: str
+    :param box_id: Die eindeutige ID der SenseBox.
+    :type box_id: str
+    """
+
     def __init__(self, base_url: str, box_id: str) -> None:
         self.base_url = base_url
         self.box_id = box_id
 
     @staticmethod
-    def create_time_intervals(start_date: str, day_step: int = 10):
+    def create_time_intervals(
+        start_date: str, day_step: int = 10
+    ) -> list[tuple[str, str]]:
+        """
+        Erstellt eine Liste von Zeitintervallen ab dem Startdatum bis heute in festen Schritten.
+
+        :param start_date: Startdatum im ISO-Format mit ms, z.B. '2020-01-01T00:00:00.000Z'
+        :type start_date: str
+        :param day_step: Schrittweite in Tagen pro Intervall (Standard: 10).
+        :type day_step: int
+        :return: Liste von Tupeln mit Start- und Endzeitpunkten im ISO-Zeitformat.
+        :rtype: list[tuple[str, str]]
+        """
+
         start_date: datetime = datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
         end_date: datetime = datetime.now()
         intervals: list = []
@@ -54,6 +79,18 @@ class SenseBoxDataLoader:
         return intervals
 
     def get_response(self, url: str, params: dict = None) -> dict | None:
+        """
+        Führt eine GET-Anfrage aus und gibt das JSON-Ergebnis zurück,
+        mit bis zu 3 Wiederholungen bei Fehlern.
+
+        :param url: Die Ziel-URL der API.
+        :type url: str
+        :param params: Optionale Parameter für den API-Call.
+        :type params: dict | None
+        :return: Das JSON-Ergebnis der API-Antwort oder None bei Fehler.
+        :rtype: dict | None
+        """
+
         for attempt in range(3):
             try:
                 response: Response = requests.get(url, params=params, timeout=15)
@@ -74,6 +111,13 @@ class SenseBoxDataLoader:
         return None
 
     def get_box_information(self) -> dict | None:
+        """
+        Ruft Basisinformationen zur SenseBox (z.B. Name, ID, Standort) ab.
+
+        :return: Dictionary mit Box-Informationen oder None bei Fehler.
+        :rtype: dict | None
+        """
+
         data: dict = self.get_response(self.base_url)
         rename_map: dict = {"_id": "box_id", "loc": "location"}
         box_infos: dict = {
@@ -85,6 +129,13 @@ class SenseBoxDataLoader:
         return box_infos
 
     def get_sensors_information_for_box(self) -> pd.DataFrame:
+        """
+        Ruft Metadaten aller Sensoren der SenseBox ab.
+
+        :return: DataFrame mit Informationen zu allen Sensoren der Box.
+        :rtype: pd.DataFrame
+        """
+
         data: dict = self.get_response(self.base_url)["sensors"]
         sensor_info_data: list[dict] = [
             {k: v for k, v in entry.items() if k != "lastMeasurement"} for entry in data
@@ -97,6 +148,14 @@ class SenseBoxDataLoader:
         return sensor_infos
 
     def fetch_new_sensor_data_for_one_box(self) -> pd.DataFrame | None:
+        """
+        Holt die aktuellsten Messwerte aller Sensoren und
+        bereitet sie für die Datenbankverarbeitung auf.
+
+        :return: DataFrame mit den aktuellen Messwerten oder None bei Fehlern.
+        :rtype: pd.DataFrame | None
+        """
+
         data: dict = self.get_response(self.base_url)["sensors"]
         df: pd.DataFrame = pd.json_normalize(data)
 
@@ -161,6 +220,19 @@ class SenseBoxDataLoader:
     def fetch_historical_data_for_one_sensor(
         self, sensor_id: str, from_date: str, to_date: str
     ) -> pd.DataFrame | None:
+        """
+        Lädt historische Daten für einen spezifischen Sensor in einem bestimmten Zeitraum.
+
+        :param sensor_id: Die Sensor-ID.
+        :type sensor_id: str
+        :param from_date: Startzeitpunkt im ISO-Format.
+        :type from_date: str
+        :param to_date: Endzeitpunkt im ISO-Format.
+        :type to_date: str
+        :return: DataFrame mit Zeitreihe der Messdaten oder None.
+        :rtype: pd.DataFrame | None
+        """
+
         url: str = f"{self.base_url}/data/{sensor_id}"
         params: dict = {"from-date": from_date, "to-date": to_date}
 
@@ -203,6 +275,14 @@ class SenseBoxDataLoader:
         return df_final
 
     def fetch_all_historical_data_for_one_box(self, output_dir_path: Path):
+        """
+        Lädt alle historischen Daten für alle Sensoren einer SenseBox
+        und speichert sie partitioniert als Parquet-Dateien.
+
+        :param output_dir_path: Verzeichnis, in dem die Daten gespeichert werden.
+        :type output_dir_path: pathlib.Path
+        """
+
         sensors_info: pd.DataFrame = self.get_sensors_information_for_box()
         box_creation_date: str = (
             pd.to_datetime(self.get_box_information()["createdAt"])
@@ -266,6 +346,13 @@ class SenseBoxDataLoader:
         )
 
     def fetch_temp_data_for_forecast(self) -> pd.DataFrame:
+        """
+        Holt die letzten 8 Stunden an Temperaturdaten für Prognosemodelle.
+
+        :return: DataFrame mit Temperaturwerten und Zeitstempeln, Zeitzone angepasst.
+        :rtype: pd.DataFrame
+        """
+
         now: datetime = datetime.now()  # - timedelta(minutes=10)
         then: datetime = now - timedelta(hours=8)
 
@@ -287,6 +374,14 @@ class SenseBoxDataLoader:
 
 
 class SenseBoxApi:
+    """
+    API-Klasse für eine bestimmte SenseBox zur einfachen Datenabfrage
+    und Weiterleitung an den internen DataLoader.
+
+    :param box_id: Die eindeutige ID der SenseBox.
+    :type box_id: str
+    """
+
     def __init__(self, box_id: str) -> None:
         self.box_id = box_id
         self.base_url = f"https://api.opensensemap.org/boxes/{self.box_id}"
@@ -295,26 +390,32 @@ class SenseBoxApi:
 
     # Fetch new data from a sense box
     def fetch_new_sensor_data_for_one_box(self) -> pd.DataFrame:
+        """Methode wird oben beschrieben."""
         return self.data_loader.fetch_new_sensor_data_for_one_box()
 
     def fetch_historical_data_for_one_sensor(
         self, sensor_id: str, from_date: str, to_date: str
     ) -> pd.DataFrame:
+        """Methode wird oben beschrieben."""
         return self.data_loader.fetch_historical_data_for_one_sensor(
             sensor_id, from_date, to_date
         )
 
     def fetch_all_historical_data_for_one_box(self, output_dir_path: Path) -> None:
+        """Methode wird oben beschrieben."""
         return self.data_loader.fetch_all_historical_data_for_one_box(output_dir_path)
 
     def fetch_temp_data_for_forecast(self) -> pd.DataFrame:
+        """Methode wird oben beschrieben."""
         return self.data_loader.fetch_temp_data_for_forecast()
 
     # Get informations about the sense box
     def get_box_information(self) -> dict:
+        """Methode wird oben beschrieben."""
         return self.data_loader.get_box_information()
 
     def get_sensors_information_for_box(self) -> pd.DataFrame:
+        """Methode wird oben beschrieben."""
         return self.data_loader.get_sensors_information_for_box()
 
 
