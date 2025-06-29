@@ -1,3 +1,5 @@
+"""Klasse für das Schreiben und Lesen der Sensordaten."""
+
 import os
 from datetime import date
 from pathlib import Path
@@ -19,6 +21,17 @@ from src.ffm_dashboard.utils import SensorDataModel
 
 
 class SensorDataWriteService:
+    """
+    Dienstklasse zum Schreiben von Sensordaten in eine Datenbank.
+    Diese Klasse validiert und schreibt eingehende Sensordaten entweder einzeln oder
+    in großen Mengen, sowie die zugehörigen Metadaten.
+
+    :param db_con: Instanz der DbCon-Klasse zur Verwaltung der Datenbankverbindung.
+    :type db_con: DbCon
+    :param box_id: ID der SenseBox, zu der die Sensordaten gehören.
+    :type box_id: str
+    """
+
     def __init__(self, db_con: DbCon, box_id: str) -> None:
         self.db_con = db_con
         self.box_id = box_id
@@ -27,6 +40,18 @@ class SensorDataWriteService:
     def exists_sensor_data_point(
         sensor_data_point: SensorData, session: Session
     ) -> bool:
+        """
+        Prüft, ob ein Sensordatenpunkt mit gleichem Zeitstempel, SensorID und BoxID
+        bereits existiert.
+
+        :param sensor_data_point: Zu prüfender Datenpunkt.
+        :type sensor_data_point: SensorData
+        :param session: Aktive SQLAlchemy-Session.
+        :type session: Session
+        :return: True, wenn der Datensatz bereits existiert, sonst False.
+        :rtype: bool
+        """
+
         statement: Final = select(func.count()).where(  # pylint: disable=not-callable
             (SensorData.timestamp == sensor_data_point.timestamp)
             & (SensorData.box_id == sensor_data_point.box_id)
@@ -36,6 +61,15 @@ class SensorDataWriteService:
         return num_of_rows is not None and num_of_rows > 0
 
     def write_new_sensor_data(self, data: pd.DataFrame) -> int:
+        """
+        Validiert und schreibt neue Sensordaten in die Datenbank, wenn sie noch nicht existieren.
+
+        :param data: DataFrame mit den Sensordaten.
+        :type data: pd.DataFrame
+        :return: Anzahl erfolgreich geschriebener Datensätze.
+        :rtype: int
+        """
+
         if data is None or data.empty:
             logger.error("No data provided to write")
 
@@ -64,6 +98,13 @@ class SensorDataWriteService:
         return insert_count
 
     def bulk_write_sensor_data_to_db(self, data_dir_path: Path) -> None:
+        """
+        Führt einen Massenimport historischer Sensordaten im Parquet-Format durch.
+
+        :param data_dir_path: Verzeichnis mit den Parquet-Dateien.
+        :type data_dir_path: Path
+        """
+
         df_validator = Pandantic(schema=SensorDataModel)
         paths: list = [name for name in os.listdir(data_dir_path)]
         logger.debug(
@@ -98,6 +139,8 @@ class SensorDataWriteService:
         )
 
     def write_sensor_metadata(self) -> None:
+        """Ruft Sensormetadaten über die SenseBox API ab und schreibt sie in die Datenbank."""
+
         sense_box_api = SenseBoxApi(self.box_id)
         metadata_df: pd.DataFrame = sense_box_api.get_sensors_information_for_box()
 
@@ -115,11 +158,27 @@ class SensorDataWriteService:
 
 
 class SensorDataQueryService:
+    """
+    Dienstklasse für Datenbankabfragen zu Sensordaten und Sensor-Metadaten.
+
+    :param db_con: Instanz der DbCon-Klasse zur Verwaltung der Datenbankverbindung.
+    :type db_con: DbCon
+    :param box_id: ID der SenseBox, zu der die Sensordaten gehören.
+    :type box_id: str
+    """
+
     def __init__(self, db_con: DbCon, box_id: str) -> None:
         self.db_con = db_con
         self.box_id = box_id
 
     def query_all_data(self) -> pd.DataFrame:
+        """
+        Lädt alle Sensordaten für die angegebene Box-ID.
+
+        :return: DataFrame mit allen Datenpunkten.
+        :rtype: pd.DataFrame
+        """
+
         logger.info("Querying all data for box_id {}.", self.box_id)
         try:
             query = select(SensorData).where(SensorData.box_id == self.box_id)
@@ -136,6 +195,13 @@ class SensorDataQueryService:
         return None
 
     def query_sensors_metadata(self) -> pd.DataFrame:
+        """
+        Lädt alle Sensor-Metadaten aus der Datenbank.
+
+        :return: DataFrame mit Metadaten der Sensoren.
+        :rtype: pd.DataFrame
+        """
+
         logger.info("Query sensor metadata for box_id {}.", self.box_id)
         try:
             query = select(SensorMetadata)
@@ -146,6 +212,15 @@ class SensorDataQueryService:
             logger.error("SQLAlchemy error while querying data: {}", e)
 
     def query_data_from_a_date_on(self, from_date: date) -> pd.DataFrame:
+        """
+        Fragt alle Sensordaten ab einem bestimmten Datum ab.
+
+        :param from_date: Startdatum der Abfrage.
+        :type from_date: date
+        :return: DataFrame mit den Sensordaten ab dem angegebenen Datum.
+        :rtype: pd.DataFrame
+        """
+
         logger.info(
             "Querying data for box_id {} from {} to now.",
             self.box_id,
@@ -173,6 +248,18 @@ class SensorDataQueryService:
         sensor_ids: list[str],
         date_range: list[pd.Timestamp],
     ) -> Dict[str, PlotData]:
+        """
+        Abfrage aufbereiteter Plotdaten für bestimmte Sensoren in einem Zeitbereich.
+        Die Daten werden abhängig vom Zeitraum aus unterschiedlichen aggregierten Tabellen geladen.
+
+        :param sensor_ids: Liste der Sensor-IDs.
+        :type sensor_ids: list[str]
+        :param date_range: Zeitbereich im Format [Startdatum, Enddatum].
+        :type date_range: list[pd.Timestamp]
+        :return: Dictionary mit Sensor-ID als Schlüssel und `PlotData`-Objekten als Wert.
+        :rtype: Dict[str, PlotData]
+        """
+
         sensor_sql_dict: dict = {
             "5d6d5269953683001ae46ae1": "temperature",
             "5d6d5269953683001ae46add": "pm10",
@@ -191,7 +278,7 @@ class SensorDataQueryService:
             with self.db_con.get_session()() as session:
                 for sensor_id in sensor_ids:
                     table: str = f"{sensor_sql_dict[sensor_id]}_{time_table}"
-                    query_str: str = f"select * from \"{table}\" where \"timestamp\"::date between date '{date_range[0].strftime('%Y-%m-%d')}' and date '{date_range[1].strftime('%Y-%m-%d')}'"
+                    query_str: str = f"select * from \"{table}\" where \"timestamp\"::date between date '{date_range[0].strftime('%Y-%m-%d')}' and date '{date_range[1].strftime('%Y-%m-%d')}'"  # pylint: disable=line-too-long
                     query = text(query_str)
                     df: pd.DataFrame = pd.read_sql(
                         query, session.bind, parse_dates=["timestamp"]
@@ -217,27 +304,18 @@ class SensorDataQueryService:
         except Exception as e:  # pylint: disable=broad-except
             logger.exception("Unexpected error while querying data: {}", e)
 
-    # def query_data_date_range(
-    #     self, box_id: str, start_date: str, end_date: str
-    # ) -> pd.DataFrame:
-    #     logger.info(
-    #         "Querying data for box_id {} from {} to {}.", box_id, start_date, end_date
-    #     )
-    #     try:
-    #         query = select(SensorData).where(
-    #             (SensorData.box_id == box_id)
-    #             & (SensorData.timestamp.between(start_date, end_date))
-    #         )
-    #         with self.db_con.get_session()() as session:
-    #             df = pd.read_sql(query, session.bind, parse_dates=["timestamp"])
-    #         logger.info("Retrieved {} data points from db.", len(df))
-    #         return df
-    #     except Exception as e:
-    #         logger.error("Error querying data: {}", e)
-    #         return None
-
 
 class SensorDataDbService:
+    """
+    DB-Service-Klasse zur Verwaltung von Lese- und Schreiboperationen auf der Sensordatenbank.
+    Diese Klasse vereint Funktionen des `SensorDataWriteService` und `SensorDataQueryService`.
+
+    :param db_con: Datenbankverbindung.
+    :type db_con: DbCon
+    :param box_id: ID der SenseBox.
+    :type box_id: str
+    """
+
     def __init__(self, db_con: DbCon, box_id: str) -> None:
         self.db_con = db_con
         self.box_id = box_id
@@ -251,32 +329,31 @@ class SensorDataDbService:
 
     # Write data in db
     def write_new_sensor_data(self, data: pd.DataFrame) -> int:
+        """Methode wird oben beschrieben."""
         return self.sensor_data_write_service.write_new_sensor_data(data)
 
     def bulk_write_sensor_data_to_db(self, data_dir_path: Path) -> None:
+        """Methode wird oben beschrieben."""
         self.sensor_data_write_service.bulk_write_sensor_data_to_db(data_dir_path)
 
     def write_sensor_metadata(self) -> None:
+        """Methode wird oben beschrieben."""
         self.sensor_data_write_service.write_sensor_metadata()
 
     # Get data from db
     def query_all_data(self) -> pd.DataFrame:
+        """Methode wird oben beschrieben."""
         return self.sensor_data_query_servive.query_all_data()
 
     def query_data_from_a_date_on(self, from_date: date) -> pd.DataFrame:
+        """Methode wird oben beschrieben."""
         return self.sensor_data_query_servive.query_data_from_a_date_on(from_date)
 
     def query_plot_data(
         self, sensor_ids: list[str], date_range: list[pd.Timestamp]
     ) -> Dict[str, PlotData]:
+        """Methode wird oben beschrieben."""
         return self.sensor_data_query_servive.query_plot_data(sensor_ids, date_range)
-
-    # def query_data_date_range(
-    #     self, box_id: str, start_date: str, end_date: str
-    # ) -> pd.DataFrame:
-    #     return self.sensor_data_query_servive.query_data_date_range(
-    #         box_id, start_date, end_date
-    #     )
 
 
 if __name__ == "__main__":
