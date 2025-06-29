@@ -1,3 +1,5 @@
+"""Training für das LGBM-Modell."""
+
 import os
 from pathlib import Path
 
