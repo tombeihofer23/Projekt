@@ -20,6 +20,11 @@ Um das Dashboard zu starten muss Docker auf dem Computer installiert und einsatz
 - beim ersten Start alle historischen Daten der SenseBox downloaden
 - ohne historische Daten
 
+**Es muss im Main-Branch gearbeitet werden, also:**
+```bash
+git checkout main
+```
+
 ### mit historischen Daten
 
 >**Achtung**: Alle historischen Daten der SenseBox werden geladen und in die Datenbank geschrieben. Dies kann bis zu **einer Stunde** oder länger dauern.
